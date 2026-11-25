@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Werklijst maken – skivakantie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F5F7F9; --surface:#FFFFFF; --ink:#16212B; --muted:#5A6977; --line:#D8E0E7; --soft:#EDF1F4;
+  --blue:#1E5EAB; --green:#2B8452; --red:#C4362C; --black:#16212B; --warn:#8A5A00; --warnbg:#FFF6E0;
+  --focus:#1E5EAB;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0E151C; --surface:#151F29; --ink:#E4EBF1; --muted:#97A6B4; --line:#2A3846; --soft:#1B2733;
+    --blue:#6FA4E8; --green:#5CC28A; --red:#F07A70; --black:#E4EBF1; --warn:#F2C46B; --warnbg:#2A2312; --focus:#6FA4E8;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0E151C; --surface:#151F29; --ink:#E4EBF1; --muted:#97A6B4; --line:#2A3846; --soft:#1B2733;
+  --blue:#6FA4E8; --green:#5CC28A; --red:#F07A70; --black:#E4EBF1; --warn:#F2C46B; --warnbg:#2A2312; --focus:#6FA4E8;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding:40px 20px 64px}
+h1,h2{font-family:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;font-weight:700;letter-spacing:-.01em;margin:0}
+h1{font-size:2.4rem;line-height:1.1}
+h2{font-size:1.35rem;font-weight:600}
+.lede{color:var(--muted);max-width:62ch;margin:.6rem 0 0}
+section{margin-top:36px}
+.grid{display:grid;grid-template-columns:3fr 2fr;gap:16px}
+@media (max-width:720px){.grid{grid-template-columns:1fr} h1{font-size:2rem}}
+.drop{position:relative;display:flex;flex-direction:column;gap:6px;padding:22px;border:1.5px dashed var(--line);border-radius:10px;background:var(--surface);cursor:pointer;min-height:132px;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--blue)}
+.drop.done{border-style:solid;border-color:var(--green)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.drop:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+.drop strong{font-size:1.05rem}
+.drop .hint{color:var(--muted);font-size:.92rem}
+.drop .file{font-weight:500;color:var(--green);word-break:break-word;font-size:.92rem}
+.opt{font-weight:400;color:var(--muted)}
+.settings{display:flex;flex-wrap:wrap;gap:16px 28px;margin-top:20px;align-items:flex-end}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.92rem;color:var(--muted)}
+label.f input{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+label.f input:focus{outline:2px solid var(--focus);outline-offset:1px}
+#periodName{width:16rem;max-width:100%}
+#minAge{width:6rem}
+.check{display:flex;gap:8px;align-items:center;font-size:.92rem;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 22px;color:var(--muted);margin-top:8px;font-size:.95rem}
+.meta b{color:var(--ink);font-weight:600}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.tab{font:inherit;display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer;text-align:left}
+.tab:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.tab[aria-selected="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.tab .n{font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:1.25rem;line-height:1}
+.tab .u{font-family:"Barlow",system-ui,sans-serif;font-weight:500;font-size:.85rem;color:var(--muted)}
+.tab .l{font-size:.9rem;color:var(--muted);line-height:1.2}
+.mk{width:14px;height:14px;flex:none;display:inline-block}
+.mk.green{background:var(--green);border-radius:50%}
+.mk.blue{background:var(--blue)}
+.mk.red{background:var(--red);transform:rotate(45deg) scale(.85)}
+.mk.black{background:var(--black);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.mk.grey{background:var(--muted);border-radius:3px}
+.tablewrap{margin-top:14px;overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 10px;border-bottom:1px solid var(--soft);text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:var(--surface);font-weight:600;border-bottom:1px solid var(--line);z-index:1}
+tr.sub td{font-weight:600;background:var(--soft)}
+td.flag{color:var(--red);font-weight:600}
+td.wrap{white-space:normal;min-width:24rem}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:22px}
+.btn{font:inherit;font-weight:600;padding:12px 20px;border-radius:8px;border:0;background:var(--blue);color:#fff;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#0E151C}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#0E151C}}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.btn[disabled]{opacity:.5;cursor:default}
+.status{color:var(--muted);font-size:.95rem}
+.warns{margin-top:18px;padding:14px 18px;border-radius:8px;background:var(--warnbg);color:var(--ink)}
+.warns h3{margin:0 0 6px;font-size:1rem;color:var(--warn)}
+.warns ul{margin:0;padding-left:1.1rem}
+.err{margin-top:16px;padding:14px 18px;border-radius:8px;border:1px solid var(--red);color:var(--red)}
+.legend{margin-top:40px;color:var(--muted);font-size:.9rem;max-width:72ch}
+.legend code{font-family:inherit;font-weight:600;color:var(--ink)}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Werklijst maken</h1>
+  <p class="lede">Laad de onbewerkte deelnemerslijst van een periode op. Je krijgt meteen de werklijst met de gekuiste periode, de lijst voor het onthaal, de skichef, de ESF‑adultes en Skiset.</p>
+
+  <section aria-labelledby="h-in">
+    <h2 id="h-in">Bestanden</h2>
+    <div class="grid" style="margin-top:12px">
+      <label class="drop" id="dropRaw">
+        <strong>Onbewerkte deelnemerslijst</strong>
+        <span class="hint">Sleep het .xlsx‑bestand hierheen of klik om te kiezen.</span>
+        <span class="file" id="rawName"></span>
+        <input type="file" id="rawFile" accept=".xlsx" aria-label="Onbewerkte deelnemerslijst kiezen">
+      </label>
+      <label class="drop" id="dropHist">
+        <strong>Historiek <span class="opt">(optioneel)</span></strong>
+        <span class="hint">Het bestand met blad ‘Search’ (naam, wanneer, behaald, geweest). Vult #geweest, #wanneer en #behaald in.</span>
+        <span class="file" id="histName"></span>
+        <input type="file" id="histFile" accept=".xlsx" aria-label="Historiekbestand kiezen">
+      </label>
+    </div>
+    <div class="settings">
+      <label class="f">Naam van de periode
+        <input id="periodName" type="text" placeholder="bv. Pasen 1">
+      </label>
+      <label class="f">ESF‑adultes vanaf leeftijd
+        <input id="minAge" type="number" min="0" max="99" value="15">
+      </label>
+      <label class="check"><input type="checkbox" id="rememberHist" checked> Historiek onthouden in deze browser</label>
+      <button type="button" class="btn" id="forgetHist" style="background:transparent;color:var(--muted);padding:6px 0;font-weight:500;text-decoration:underline" hidden>Onthouden historiek wissen</button>
+    </div>
+    <div class="err" id="err" role="alert" hidden></div>
+  </section>
+
+  <section id="out" aria-labelledby="h-out" hidden>
+    <h2 id="h-out">Resultaat</h2>
+    <div class="meta" id="meta"></div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="tablewrap" id="tablewrap" role="tabpanel"><table id="preview"></table></div>
+    <div class="warns" id="warns" hidden><h3>Even nakijken</h3><ul id="warnList"></ul></div>
+    <div class="actions">
+      <button type="button" class="btn" id="dl">Werklijst downloaden</button>
+      <span class="status" id="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <p class="legend">De app herkent zowel de layout van 2025 als die van 2026. Codes: <code>SAA</code> avondmaal, <code>ASP</code> skipas, <code>ASL</code> les (al geskied), <code>ASE</code> les (nooit geskied), <code>ASM</code> skimateriaal; snowboard krijgt <code>SB…</code>. Gezinnen worden doorlopend genummerd in de volgorde van de lijst. Geboortedatums met (!) vallen tijdens het verblijf en staan in het rood. Het bestand bevat ook een blad ‘Opmerkingen gezinnen’ met de wensen van elke boeking. Alles wordt in je browser verwerkt; er wordt niets opgeslagen of verstuurd.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+/* Kern: onbewerkte deelnemerslijst -> werklijst. Werkt in browser (window.WL) en in node. */
+(function (root) {
+  "use strict";
+
+  const DOSSIER_RE = /\d+-[A-Z]{2}\d+-\d{4}-\d+/;
+
+  function plain(v) {
+    if (v === null || v === undefined) return null;
+    if (v instanceof Date) return v;
+    if (typeof v === "object") {
+      if (v.richText) return v.richText.map(t => t.text).join("");
+      if (v.text !== undefined) return plain(v.text);
+      if (v.result !== undefined) return plain(v.result);
+      if (v.error) return null;
+      return String(v);
+    }
+    if (typeof v === "string") {
+      const s = v.replace(/\u00a0/g, " ").trim();
+      return s === "" ? null : s;
+    }
+    return v;
+  }
+  function str(v) { v = plain(v); return v === null ? "" : (v instanceof Date ? v.toISOString() : String(v)); }
+
+  function cleanPhone(v) {
+    const s = str(v).replace(/^'+/, "").trim();
+    return s;
+  }
+  function isMobile(p) {
+    const d = p.replace(/[^\d+]/g, "");
+    return /^04\d{8}$/.test(d) || /^(\+|00)324\d{8}$/.test(d) || /^(\+|00)316\d{8}$/.test(d) || /^06\d{8}$/.test(d);
+  }
+  function capFirst(name) {
+    if (!name) return name;
+    return name.charAt(0).toLocaleUpperCase("nl") + name.slice(1);
+  }
+  function lc(s) { return s.toLocaleLowerCase("fr"); }
+
+  // ---------- codes ----------
+  function codeMeal(t) {
+    if (!t) return "";
+    const l = lc(t);
+    if (l.includes("repas") || l.includes("diner") || l.includes("dîner")) return "SAA";
+    return t;
+  }
+  function codePass(t) { return t ? "ASP" : ""; }
+  function codeLesson(t) {
+    if (!t) return "";
+    const l = lc(t);
+    const pre = l.includes("snow") ? "SB" : "AS";
+    if (l.includes("jamais")) return pre + "E";
+    if (l.includes("déjà") || l.includes("deja")) return pre + "L";
+    return pre + "L";
+  }
+  function codeMaterial(t) {
+    if (!t) return "";
+    const l = lc(t);
+    if (l.includes("snow")) return "SBM";
+    return "ASM";
+  }
+
+  // ---------- parsen ----------
+  function parseRaw2025(ws) {
+    const get = (r, c) => {
+      const cell = ws.getRow(r).getCell(c);
+      if (cell.isMerged && cell.master && cell.master.address !== cell.address) return null; // samengevoegde cel: enkel de eerste telt
+      return plain(cell.value);
+    };
+    const maxRow = ws.rowCount;
+    const maxCol = Math.max(ws.columnCount, 24);
+
+    const info = {
+      periodCode: str(get(1, 2)),
+      start: get(1, 3) instanceof Date ? get(1, 3) : null,
+      end: get(1, 4) instanceof Date ? get(1, 4) : null,
+      declaredParticipants: typeof get(2, 2) === "number" ? get(2, 2) : null,
+      listBy: str(get(3, 2)),
+      listDate: get(3, 3) instanceof Date ? get(3, 3) : null,
+    };
+    if (lc(str(get(1, 1))) !== "période" && lc(str(get(1, 1))) !== "periode") {
+      throw new Error("Dit lijkt geen onbewerkte deelnemerslijst: cel A1 bevat geen ‘Période’.");
+    }
+
+    const families = [];
+    const warnings = [];
+    let fam = null;
+    let cols = { N: 14, P: 16, Q: 17, R: 18, S: 19, T: 20, K: 11 };
+
+    for (let r = 4; r <= maxRow; r++) {
+      const a = str(get(r, 1));
+      const g = str(get(r, 7));
+
+      // gezinskop
+      if (a && DOSSIER_RE.test(a) && /^\d+\s/.test(a)) {
+        const m = a.match(/^(\d+)\s+(.*?)\s+(\d+-[A-Z]{2}\d+-\d{4}-\d+)\s+(\d+)/);
+        fam = {
+          origNr: m ? m[1] : a.split(/\s+/)[0],
+          booker: m ? m[2] : a,
+          dossier: m ? m[4] : "",
+          phones: [], email: "", address: [], declared: null,
+          members: [], remarks: [], units: [],
+        };
+        families.push(fam);
+        continue;
+      }
+      if (!fam) continue;
+
+      // opmerkingsregel (alleen kolom A gevuld)
+      if (a && !g) {
+        let others = false;
+        for (let c = 2; c <= maxCol; c++) if (get(r, c) !== null) { others = true; break; }
+        if (!others) { fam.remarks.push(a); continue; }
+      }
+
+      // kolomkoppen per gezin
+      if (/^participants\s*=/i.test(g)) {
+        fam.declared = parseInt(g.replace(/\D+/g, ""), 10) || null;
+        const map = {};
+        for (let c = 8; c <= maxCol; c++) {
+          const h = lc(str(get(r, c)));
+          if (h === "statut") map.K = c;
+          else if (h === "s") map.N = c;
+          else if (h === "t") map.P = c;
+          else if (h === "ski p") map.Q = c;
+          else if (h === "ski l") map.R = c;
+          else if (h === "ski m") map.S = c;
+          else if (h === "remarques") map.T = c;
+        }
+        cols = Object.assign({ N: 14, P: 16, Q: 17, R: 18, S: 19, T: 20, K: 11 }, map);
+        const b = str(get(r, 2)); if (b) fam.address.push(b);
+        const p = cleanPhone(get(r, 3)); if (p) fam.phones.push(p);
+        fam.email = str(get(r, 4));
+        continue;
+      }
+
+      // adresregel 2 / telefoon 2 (kolom B/C) staat op de eerste deelnemersrij
+      if (fam.members.length === 0) {
+        const b = str(get(r, 2)); if (b) fam.address.push(b);
+        const p = cleanPhone(get(r, 3)); if (p && !fam.phones.includes(p)) fam.phones.push(p);
+      }
+      const unit = str(get(r, 5)); if (unit && fam.members.length < 2) fam.units.push(unit);
+
+      // deelnemer
+      if (g) {
+        const sex = str(get(r, 8)).toUpperCase();
+        const age = get(r, 9);
+        if (!(sex === "M" || sex === "F" || sex === "V" || typeof age === "number")) continue;
+        const statut = str(get(r, cols.K));
+        if (statut && /annul/i.test(statut)) {
+          warnings.push(`${g} (gezin ${fam.booker}) staat als geannuleerd en is weggelaten.`);
+          continue;
+        }
+        const birth = get(r, 10);
+        const m = {
+          name: capFirst(g), sex: sex === "V" ? "F" : sex,
+          age: typeof age === "number" ? age : (age ? Number(age) || str(age) : ""),
+          birth: birth === null ? "" : birth,
+          meal: codeMeal(str(get(r, cols.N))),
+          pass: codePass(str(get(r, cols.Q))),
+          lesson: codeLesson(str(get(r, cols.R))),
+          material: codeMaterial(str(get(r, cols.S))),
+          note: str(get(r, cols.T)),
+          birthdayFlag: typeof birth === "string" && birth.includes("(!)"),
+        };
+        fam.members.push(m);
+        if (m.birthdayFlag) warnings.push(`${m.name} verjaart tijdens het verblijf (${birth.replace(/\s*\(!\)/, "")}).`);
+      }
+    }
+
+    // nummering + gsm
+    const kept = families.filter(f => f.members.length);
+    kept.forEach((f, i) => {
+      f.nr = i + 1;
+      const mob = f.phones.slice().reverse().find(isMobile);
+      f.gsm = mob || f.phones[0] || "";
+      if (f.declared !== null && f.declared !== f.members.length) {
+        warnings.push(`Gezin ${f.booker}: ${f.declared} deelnemers aangekondigd, ${f.members.length} gevonden.`);
+      }
+    });
+    const total = kept.reduce((s, f) => s + f.members.length, 0);
+    if (info.declaredParticipants !== null && info.declaredParticipants !== total) {
+      warnings.unshift(`De lijst meldt ${info.declaredParticipants} deelnemers, er zijn er ${total} ingelezen.`);
+    }
+    return { info, families: kept, warnings, total, layout: "2025", hasLessons: true };
+  }
+
+  function makeGetter(ws) {
+    return (r, c) => {
+      const cell = ws.getRow(r).getCell(c);
+      if (cell.isMerged && cell.master && cell.master.address !== cell.address) return null;
+      return plain(cell.value);
+    };
+  }
+
+  // Dispatcher: herkent de layout
+  function parseRaw(ws) {
+    const get = makeGetter(ws);
+    const a1 = lc(str(get(1, 1)));
+    if (a1 === "période" || a1 === "periode") return parseRaw2025(ws);
+    for (let r = 1; r <= Math.min(15, ws.rowCount); r++) {
+      for (let c = 1; c <= 30; c++) {
+        if (lc(str(get(r, c))) === "nom") return parseRaw2026(ws, r);
+      }
+    }
+    throw new Error("Deze layout wordt niet herkend: geen ‘Période’ in A1 en geen kopregel met ‘Nom’ gevonden.");
+  }
+
+  function parseDayMonth(s, year) {
+    const m = String(s).match(/(\d{1,2})[\/.-](\d{1,2})(?:[\/.-](\d{4}))?/);
+    if (!m) return null;
+    return new Date(Date.UTC(m[3] ? +m[3] : year, +m[2] - 1, +m[1]));
+  }
+
+  // Layout 2026: één kopregel (Type d'appartement, Nombre, Nom, Sexe, Âge, ...)
+  function parseRaw2026(ws, hr) {
+    const get = makeGetter(ws);
+    const maxRow = ws.rowCount;
+    const maxCol = Math.max(ws.columnCount, 11);
+    const col = {};
+    for (let c = 1; c <= maxCol; c++) {
+      const h = lc(str(get(hr, c)));
+      if (!h) continue;
+      if (h === "nom") col.name = c;
+      else if (h.startsWith("sexe")) col.sex = c;
+      else if (h.startsWith("âge") || h.startsWith("age")) col.age = c;
+      else if (h.includes("naissance")) col.birth = c;
+      else if (h.includes("type d")) col.unit = c;
+      else if (h.includes("forfait") || h.includes("skipas") || h === "ski p") col.pass = c;
+      else if (h.includes("matériel") || h.includes("materiel") || h === "ski m") col.material = c;
+      else if (h.includes("leçon") || h.includes("lecon") || h.includes("cours") || h === "ski l") col.lesson = c;
+      else if (h.includes("repas") || h.includes("supplément") || h.includes("maaltijd")) col.meal = c;
+      else if (h.includes("geweest")) col.visits = c;
+      else if (h.includes("remarque") || h.includes("opmerking")) col.remark = c;
+      else if (h.includes("gsm") || h.includes("tél") || h.includes("tel")) col.phone = c;
+    }
+    if (!col.name || !col.sex) throw new Error("Kopregel gevonden, maar de kolommen ‘Nom’ en ‘Sexe’ ontbreken.");
+
+    // titelrij: plaats, periode (dd/mm-dd/mm/jjjj), datum van de lijst
+    let place = "", range = "", listDate = null;
+    for (let c = 1; c <= maxCol; c++) {
+      const v = get(1, c);
+      if (v instanceof Date) listDate = v;
+      else if (v && /\d{1,2}\/\d{1,2}\s*-\s*\d{1,2}\/\d{1,2}\/\d{4}/.test(String(v))) range = String(v);
+      else if (v && !place) place = String(v);
+    }
+    let start = null, end = null;
+    const rm = range.match(/(\d{1,2}\/\d{1,2})(?:\/(\d{4}))?\s*-\s*(\d{1,2}\/\d{1,2}\/(\d{4}))/);
+    if (rm) { end = parseDayMonth(rm[3]); start = parseDayMonth(rm[1], rm[2] ? +rm[2] : +rm[4]); }
+
+    const info = { periodCode: "", place: place.replace(/\s*\(.*?\)\s*/g, "").trim(), rangeText: range, start, end, declaredParticipants: null, listBy: "", listDate };
+
+    const families = [], warnings = [];
+    let fam = null, blank = true;
+    const isEmptyRow = r => { for (let c = 1; c <= maxCol; c++) if (get(r, c) !== null) return false; return true; };
+
+    for (let r = hr + 1; r <= maxRow; r++) {
+      if (isEmptyRow(r)) { blank = true; continue; }
+      const a = str(get(r, 1));
+      const nm = str(get(r, col.name));
+
+      if (a && DOSSIER_RE.test(a)) {
+        const m = a.match(/^(?:(\d+)\s+)?(.*?)\s+(\d+-[A-Z]{2}\d+-\d{4}-\d+)\s+(\d+)\s*(\S+)?/);
+        if (m && m[5] && !info.periodCode) info.periodCode = m[5];
+        fam = { origNr: m && m[1] ? m[1] : "", booker: m ? m[2] : a, dossier: m ? m[4] : "", phones: [], email: "", address: [],
+                declared: null, members: [], remarks: [], units: [], staff: false };
+        families.push(fam); blank = false;
+        continue;
+      }
+      if (/^participants\s*=/i.test(nm)) {
+        if (!fam || fam.members.length || fam.staff) {
+          // gezin zonder kopregel: nieuw gezin starten, hoofdboeker = eerste deelnemer
+          fam = { origNr: "", booker: "", noHeader: true, dossier: "", phones: [], email: "", address: [], declared: null, members: [], remarks: [], units: [], staff: false };
+          families.push(fam);
+        }
+        fam.declared = parseInt(nm.replace(/\D+/g, ""), 10) || null; blank = false; continue;
+      }
+
+      // begeleiding (Coordinateur, Chef ski, Moniteur...) staat zonder gezinskop onderaan
+      if (a && nm && (!fam || fam.staff || blank)) {
+        if (!fam || !fam.staff || blank) {
+          fam = { origNr: "", booker: a + ": " + nm, dossier: "", phones: [], email: "", address: [], declared: null, members: [], remarks: [], units: [], staff: true };
+          families.push(fam);
+        }
+      } else if (!fam) { continue; }
+      blank = false;
+
+      if (!nm) { const rk = col.remark ? str(get(r, col.remark)) : ""; if (rk) fam.remarks.push(rk); else if (a) fam.remarks.push(a); continue; }
+      const sex = str(get(r, col.sex)).toUpperCase();
+      const age = col.age ? get(r, col.age) : null;
+      if (!(sex === "M" || sex === "F" || sex === "V" || typeof age === "number")) continue;
+
+      const birth = col.birth ? get(r, col.birth) : null;
+      const unit = col.unit ? str(get(r, col.unit)) : ""; if (unit) fam.units.push(unit);
+      const rk = col.remark ? str(get(r, col.remark)) : ""; if (rk) fam.remarks.push(rk);
+      if (col.phone) { const p = cleanPhone(get(r, col.phone)); if (p && !fam.phones.includes(p)) fam.phones.push(p); }
+      const v = col.visits ? get(r, col.visits) : null;
+      const m = {
+        name: capFirst(nm), sex: sex === "V" ? "F" : sex,
+        age: typeof age === "number" ? age : (age ? Number(age) || str(age) : ""),
+        birth: birth === null ? "" : birth,
+        meal: col.meal ? codeMeal(str(get(r, col.meal))) : "",
+        pass: col.pass ? codePass(str(get(r, col.pass))) : "",
+        lesson: col.lesson ? codeLesson(str(get(r, col.lesson))) : "",
+        material: col.material ? codeMaterial(str(get(r, col.material))) : "",
+        note: fam.staff && a ? a : "",
+        visits: v === null ? "" : v,
+        role: fam.staff ? (a || "") : "",
+        birthdayFlag: typeof birth === "string" && birth.includes("(!)"),
+      };
+      fam.members.push(m);
+      if (m.birthdayFlag) warnings.push(`${m.name} verjaart tijdens het verblijf (${birth.replace(/\s*\(!\)/, "")}).`);
+      if (typeof birth === "string" && birth.includes("(?)")) warnings.push(`${m.name}: geboortedatum onzeker (${birth}).`);
+    }
+
+    const kept = families.filter(f => f.members.length);
+    // deelnemers eerst, begeleiding achteraan
+    const guests = kept.filter(f => !f.staff), staff = kept.filter(f => f.staff);
+    guests.forEach((f, i) => {
+      f.nr = i + 1;
+      if (f.noHeader) {
+        const first = f.members[0].name;
+        f.booker = first + " (geen kopregel)";
+        warnings.push(`Gezin ${f.nr} (${first}) heeft geen kopregel met naam en dossiernummer in de lijst; nakijken.`);
+      }
+      const mob = f.phones.slice().reverse().find(isMobile);
+      f.gsm = mob || f.phones[0] || "";
+      if (f.declared !== null && f.declared !== f.members.length) warnings.push(`Gezin ${f.booker}: ${f.declared} deelnemers aangekondigd, ${f.members.length} gevonden.`);
+    });
+    staff.forEach(f => { f.nr = "Team"; f.gsm = ""; });
+    const total = guests.reduce((s, f) => s + f.members.length, 0);
+    const staffCount = staff.reduce((s, f) => s + f.members.length, 0);
+    if (!col.lesson) warnings.unshift("Deze lijst bevat geen kolom met skilessen: de kolom ‘Lessen’ blijft leeg.");
+    if (!col.meal) warnings.unshift("Deze lijst bevat geen kolom met maaltijden: de kolom ‘Maaltijd’ blijft leeg.");
+    if (!col.phone) warnings.unshift("Deze lijst bevat geen telefoonnummers: de kolom ‘GSM’ blijft leeg.");
+    if (staffCount) warnings.push(`${staffCount} personen van de begeleiding staan achteraan als ‘Team’ en tellen niet mee in de skichef‑ en ESF‑lijst.`);
+    return { info, families: guests.concat(staff), warnings, total, staffCount, layout: "2026", hasLessons: !!col.lesson, hasVisits: !!col.visits };
+  }
+
+  // ---------- historiek ----------
+  function normName(s) {
+    return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+  function parseHistory(wb) {
+    const ws = wb.getWorksheet("Search") || wb.worksheets[0];
+    const map = new Map();
+    ws.eachRow((row, r) => {
+      if (r === 1) return;
+      const name = str(plain(row.getCell(1).value));
+      if (!name) return;
+      const k = normName(name);
+      if (map.has(k)) return; // zoals VLOOKUP: eerste treffer
+      map.set(k, {
+        wanneer: plain(row.getCell(2).value),
+        behaald: plain(row.getCell(3).value),
+        geweest: plain(row.getCell(4).value),
+      });
+    });
+    return { map, sheet: ws.name, count: map.size };
+  }
+
+  // ---------- selecties ----------
+  function hasLesson(m) { return !!m.lesson; }
+  function skis(m) { return !!(m.pass || m.material); }
+  // Zonder lesinformatie: iedereen die skiet (skipas of materiaal) opnemen, zodat de skichef kan aanvullen.
+  function skichefList(data) {
+    const out = [];
+    const pick = data.hasLessons === false ? skis : hasLesson;
+    data.families.forEach(f => { if (f.staff) return; f.members.forEach(m => { if (pick(m)) out.push(Object.assign({ fam: f }, m)); }); });
+    out.sort((x, y) => x.name.localeCompare(y.name, "nl", { sensitivity: "base", ignorePunctuation: true }));
+    return out;
+  }
+  // Skiset: alle deelnemers met skimateriaal, in de volgorde van de gezinnen;
+  // daarna het Team (gratis materiaal): coördinator, chef ski en monitoren,
+  // plus de partner van coördinator en chef ski (volwassene zonder functie, leeftijd binnen 15 jaar).
+  // Kinderen en andere familieleden van de begeleiding staan er niet in.
+  function teamForSkiset(f) {
+    const isRole = m => /coord|chef|moni/i.test(m.role || "");
+    const out = f.members.filter(isRole);
+    const leads = out.filter(m => /coord|chef/i.test(m.role || "") && typeof m.age === "number");
+    leads.forEach(l => {
+      const cand = f.members
+        .filter(m => !isRole(m) && !out.includes(m) && typeof m.age === "number" && m.age >= 18 && Math.abs(m.age - l.age) <= 15)
+        .sort((a, b) => Math.abs(a.age - l.age) - Math.abs(b.age - l.age))[0];
+      if (cand) out.splice(out.indexOf(l) + 1, 0, cand);
+    });
+    return f.members.filter(m => out.includes(m));
+  }
+  function skisetList(data) {
+    const out = [];
+    data.families.forEach(f => { if (f.staff) return; f.members.forEach(m => { if (m.material) out.push(Object.assign({ fam: f }, m)); }); });
+    data.families.forEach(f => { if (!f.staff) return; teamForSkiset(f).forEach(m => out.push(Object.assign({ fam: f }, m))); });
+    return out;
+  }
+  function esfAdults(data, minAge) {
+    return skichefList(data).filter(m => typeof m.age === "number" && m.age >= minAge);
+  }
+
+  // ---------- werkboek bouwen ----------
+  function buildWorkbook(ExcelJS, data, opts) {
+    const hist = opts.history ? opts.history.map : null;
+    const H = name => (hist ? hist.get(normName(name)) : null);
+    const hv = (name, key, m) => {
+      const h = H(name);
+      if (h && h[key] !== null && h[key] !== undefined && h[key] !== "") return h[key];
+      if (key === "geweest" && m && m.visits !== undefined && m.visits !== "") return m.visits;
+      return "";
+    };
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "Werklijst-generator";
+    wb.created = new Date();
+    const FONT = { name: "Calibri", size: 11 };
+    const BOLD = { name: "Calibri", size: 11, bold: true };
+    const thin = { style: "thin" }, medium = { style: "medium" };
+    const center = { horizontal: "center", vertical: "middle" };
+    const DATEFMT = "dd/mm/yyyy";
+
+    function header(ws, labels, rowNr) {
+      const row = ws.getRow(rowNr || 1);
+      labels.forEach((l, i) => {
+        const c = row.getCell(i + 1);
+        c.value = l; c.font = BOLD; c.alignment = center; c.border = { bottom: thin };
+      });
+    }
+    function styleRow(row, n, centerFrom) {
+      for (let c = 1; c <= n; c++) {
+        const cell = row.getCell(c);
+        cell.font = cell.font && cell.font.bold ? cell.font : FONT;
+        if (c !== 2 || centerFrom === 1) cell.alignment = center;
+      }
+    }
+    function dateCell(cell, v) {
+      cell.value = v === "" ? null : v;
+      if (v instanceof Date) cell.numFmt = DATEFMT;
+    }
+    const memberCols = (f, m, withGsm) => [f.nr, m.name, m.sex, m.age, m.birth, m.meal, m.pass, m.lesson, m.material, withGsm ? f.gsm : ""];
+
+    // 1. Periode (gekuist)
+    {
+      const ws = wb.addWorksheet("Periode (gekuist)", { views: [{ state: "frozen", ySplit: 1 }] });
+      header(ws, ["Familie", "Naam", "M/F", "Lft", "Geb. datum", "Maaltijd", "Skipas", "Lessen", "Materiaal", "GSM", "#geweest", "#wanneer"]);
+      let r = 2;
+      data.families.forEach(f => f.members.forEach(m => {
+        const row = ws.getRow(r);
+        const vals = memberCols(f, m, true).concat([hv(m.name, "geweest", m), hv(m.name, "wanneer")]);
+        vals.forEach((v, i) => { if (i === 4) dateCell(row.getCell(5), v); else row.getCell(i + 1).value = v === "" ? null : v; });
+        styleRow(row, 12);
+        r++;
+      }));
+      ws.autoFilter = { from: "A1", to: `L${r - 1}` };
+      [9, 30, 6, 6, 13, 10, 9, 9, 11, 14, 10, 11].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    }
+
+    // 2. Lijst Onthaal
+    let famVisited = 0;
+    {
+      const ws = wb.addWorksheet("Lijst Onthaal", {
+        views: [{ state: "frozen", ySplit: 1 }],
+        properties: { outlineLevelRow: 2 },
+        pageSetup: { orientation: "landscape", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, showGridLines: true, printTitlesRow: "1:1" },
+      });
+      header(ws, ["Familie", "Naam", "M/F", "Lft", "Geb. datum", "Maaltijd", "Skipas", "Lessen", "Materiaal", "GSM", "#geweest", "#wanneer"]);
+      let r = 2;
+      data.families.forEach(f => {
+        const first = r;
+        let anyVisited = false;
+        f.members.forEach(m => {
+          const row = ws.getRow(r);
+          const g = hv(m.name, "geweest", m), w = hv(m.name, "wanneer");
+          if (g !== "" || w !== "") anyVisited = true;
+          memberCols(f, m, true).concat([g, w]).forEach((v, i) => { if (i === 4) dateCell(row.getCell(5), v); else row.getCell(i + 1).value = v === "" ? null : v; });
+          styleRow(row, 12);
+          if (m.birthdayFlag) row.getCell(5).font = { name: "Calibri", size: 11, bold: true, color: { argb: "FFC00000" } };
+          row.outlineLevel = 2;
+          r++;
+        });
+        if (anyVisited && !f.staff) famVisited++;
+        const sr = ws.getRow(r);
+        sr.getCell(1).value = `Aantal ${f.nr}`; sr.getCell(1).font = BOLD; sr.getCell(1).alignment = center;
+        sr.getCell(2).value = { formula: `SUBTOTAL(3,B${first}:B${r - 1})`, result: f.members.length };
+        sr.getCell(2).font = BOLD; sr.getCell(2).alignment = { horizontal: "left" };
+        for (let c = 1; c <= 12; c++) sr.getCell(c).border = { bottom: thin };
+        sr.outlineLevel = 1;
+        r++;
+      });
+      const tr = ws.getRow(r);
+      tr.getCell(1).value = "Totaalaantal"; tr.getCell(1).font = BOLD; tr.getCell(1).alignment = center;
+      tr.getCell(2).value = { formula: `SUBTOTAL(3,B2:B${r - 1})`, result: data.total + (data.staffCount || 0) };
+      tr.getCell(2).font = BOLD; tr.getCell(2).alignment = { horizontal: "left" };
+      ws.autoFilter = { from: "A1", to: `L${r - 1}` };
+      r++;
+      const gr = ws.getRow(r);
+      ws.mergeCells(`A${r}:B${r}`);
+      gr.getCell(1).value = "Gezinnen reeds geweest"; gr.getCell(1).font = BOLD; gr.getCell(1).alignment = { horizontal: "left" };
+      const known = hist || data.hasVisits;
+      gr.getCell(3).value = known ? famVisited : null; gr.getCell(3).alignment = center;
+      gr.getCell(4).value = data.families.filter(f => !f.staff).length; gr.getCell(4).alignment = center;
+      if (!known) gr.getCell(5).value = "(historiek niet opgeladen)";
+      [11, 30, 5, 5, 13, 9, 7, 8, 10, 14, 10, 11].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    }
+
+    // 3. Lijst skichef
+    const sk = skichefList(data);
+    {
+      const ws = wb.addWorksheet("Lijst skichef", {
+        views: [{ state: "frozen", ySplit: 2 }],
+        pageSetup: { orientation: "landscape", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: "1:2" },
+      });
+      const r1 = ws.getRow(1), r2 = ws.getRow(2);
+      [["A", "Naam"], ["B", "M/F"], ["C", "Lft"], ["D", "Lessen"], ["K", "Groep"]].forEach(([col, l]) => {
+        ws.mergeCells(`${col}1:${col}2`); const c = ws.getCell(`${col}1`); c.value = l;
+      });
+      ws.mergeCells("E1:G1"); ws.getCell("E1").value = "Uit vorige jaren";
+      ws.mergeCells("H1:J1"); ws.getCell("H1").value = "Bevraging Intersoc";
+      ["#behaald", "#geweest", "#wanneer", "# weken\ngeskied", "# opgegeven", "samen met"].forEach((l, i) => (r2.getCell(5 + i).value = l));
+      for (let c = 1; c <= 11; c++) {
+        for (const row of [r1, r2]) {
+          const cell = row.getCell(c);
+          cell.font = BOLD; cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+          cell.border = { top: row === r1 ? thin : undefined, bottom: row === r2 ? medium : thin, left: thin, right: thin };
+        }
+      }
+      r2.height = 30;
+      let r = 3;
+      sk.forEach(m => {
+        const row = ws.getRow(r);
+        [m.name, m.sex, m.age, m.lesson, hv(m.name, "behaald"), hv(m.name, "geweest", m), hv(m.name, "wanneer"), null, null, null, null]
+          .forEach((v, i) => (row.getCell(i + 1).value = v === "" ? null : v));
+        for (let c = 1; c <= 11; c++) {
+          const cell = row.getCell(c);
+          cell.font = FONT;
+          if (c > 1) cell.alignment = center;
+          cell.border = { bottom: { style: "hair" }, left: thin, right: thin };
+        }
+        r++;
+      });
+      ws.autoFilter = { from: "A2", to: `K${r - 1}` };
+      [26, 6, 6, 8, 14, 10, 11, 10, 12, 18, 14].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    }
+
+    // 4. Lijst ESF - Adultes
+    const esf = esfAdults(data, opts.minAge);
+    {
+      const ws = wb.addWorksheet("Lijst ESF - Adultes", {
+        views: [{ state: "frozen", ySplit: 1 }],
+        pageSetup: { orientation: "portrait", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: "1:1" },
+      });
+      const labels = ["Nom", "Sexe", "Âge", "Leçons", "Classe", "#Déjà eu", "#Quand"];
+      labels.forEach((l, i) => {
+        const c = ws.getRow(1).getCell(i + 1);
+        c.value = l; c.font = { name: "Calibri", size: 12, bold: true }; c.alignment = i ? center : { vertical: "middle" };
+        c.border = { bottom: medium };
+      });
+      ws.getRow(1).height = 18;
+      let r = 2;
+      esf.forEach(m => {
+        const row = ws.getRow(r);
+        const classe = m.lesson.endsWith("E") ? "Débutant" : null;
+        [m.name, m.sex, m.age, m.lesson, classe, hv(m.name, "geweest", m), hv(m.name, "wanneer")]
+          .forEach((v, i) => {
+            const c = row.getCell(i + 1);
+            c.value = v === "" ? null : v; c.font = FONT; if (i) c.alignment = center;
+            c.border = { bottom: thin };
+          });
+        r++;
+      });
+      [34, 7, 6, 8, 16, 10, 11].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    }
+
+    // 5. Skiset (partner skimateriaal): iedereen met materiaal, per gezin
+    const skiset = skisetList(data);
+    {
+      const ws = wb.addWorksheet("Skiset", {
+        views: [{ state: "frozen", ySplit: 1 }],
+        pageSetup: { orientation: "portrait", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: "1:1" },
+      });
+      ["Group", "Nom", "Sexe", "Age"].forEach((l, i) => {
+        const c = ws.getRow(1).getCell(i + 1); c.value = l; c.font = BOLD;
+        c.alignment = i === 1 ? { horizontal: "left" } : { horizontal: "center" }; c.border = { bottom: thin };
+      });
+      skiset.forEach((m, i) => {
+        const row = ws.getRow(i + 2);
+        [m.fam.nr, m.name, m.sex, m.age].forEach((v, j) => {
+          const c = row.getCell(j + 1); c.value = v === "" ? null : v; c.font = FONT;
+          c.alignment = j === 1 ? { horizontal: "left" } : { horizontal: "center" };
+        });
+      });
+      [9, 36, 9, 9].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    }
+
+    // 5. Opmerkingen gezinnen
+    {
+      const ws = wb.addWorksheet("Opmerkingen gezinnen", { views: [{ state: "frozen", ySplit: 1 }] });
+      header(ws, ["Familie", "Hoofdboeker", "Dossier", "GSM", "E-mail", "Opmerking"]);
+      let r = 2;
+      data.families.forEach(f => {
+        const notes = f.remarks.slice();
+        f.members.forEach(m => { if (m.note) notes.push(`${m.name}: ${m.note}`); });
+        const row = ws.getRow(r);
+        [f.nr, f.booker, f.dossier, f.gsm, f.email, notes.join("\n")].forEach((v, i) => {
+          const c = row.getCell(i + 1);
+          c.value = v === "" ? null : v; c.font = FONT;
+          c.alignment = { vertical: "top", wrapText: i === 5, horizontal: i === 0 ? "center" : undefined };
+          c.border = { bottom: { style: "hair" } };
+        });
+        r++;
+      });
+      ws.autoFilter = { from: "A1", to: `F${r - 1}` };
+      [9, 26, 10, 14, 30, 80].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    }
+
+    return { wb, counts: { skichef: sk.length, esf: esf.length, skiset: skiset.length, famVisited } };
+  }
+
+  const api = { parseRaw, parseHistory, buildWorkbook, skichefList, esfAdults, skisetList, normName };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.WL = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const state = { raw:null, rawFileName:"", hist:null, histLabel:"", tab:"gekuist" };
+  const HKEY = "werklijst-historiek-v1";
+
+  function showErr(msg){ const e=$("err"); e.textContent=msg; e.hidden=!msg; }
+  function fmtDate(d){ if(!(d instanceof Date)) return d==null?"":String(d); const p=n=>String(n).padStart(2,"0"); return p(d.getUTCDate())+"/"+p(d.getUTCMonth()+1)+"/"+d.getUTCFullYear(); }
+
+  // historiek uit browsergeheugen
+  try{
+    const s = localStorage.getItem(HKEY);
+    if(s){ const o=JSON.parse(s); state.hist={ map:new Map(o.entries), count:o.entries.length }; state.histLabel=o.label;
+      $("histName").textContent = "Onthouden: "+o.label+" ("+o.entries.length+" namen)"; $("dropHist").classList.add("done"); $("forgetHist").hidden=false; }
+  }catch(e){}
+
+  $("forgetHist").addEventListener("click", ()=>{
+    try{ localStorage.removeItem(HKEY); }catch(e){}
+    state.hist=null; $("histName").textContent=""; $("dropHist").classList.remove("done"); $("forgetHist").hidden=true; render();
+  });
+
+  function guessPeriod(name){
+    const m = name.match(/(Krokus|Pasen|Kerst|Herfst|Carnaval|Voorjaar|Paas)[\s_-]*(\d+)?/i);
+    if(!m) return "";
+    const w = m[1].charAt(0).toUpperCase()+m[1].slice(1).toLowerCase();
+    return m[2] ? w+" "+m[2] : w;
+  }
+
+  async function readWb(file){
+    const buf = await file.arrayBuffer();
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf);
+    return wb;
+  }
+
+  function wireDrop(dropId){
+    const d=$(dropId);
+    ["dragenter","dragover"].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add("over");}));
+    ["dragleave","drop"].forEach(ev=>d.addEventListener(ev,()=>d.classList.remove("over")));
+  }
+  wireDrop("dropRaw"); wireDrop("dropHist");
+  $("dropRaw").addEventListener("drop",e=>{e.preventDefault(); if(e.dataTransfer.files[0]) handleRaw(e.dataTransfer.files[0]);});
+  $("dropHist").addEventListener("drop",e=>{e.preventDefault(); if(e.dataTransfer.files[0]) handleHist(e.dataTransfer.files[0]);});
+  $("rawFile").addEventListener("change",e=>{ if(e.target.files[0]) handleRaw(e.target.files[0]); e.target.value=""; });
+  $("histFile").addEventListener("change",e=>{ if(e.target.files[0]) handleHist(e.target.files[0]); e.target.value=""; });
+  $("minAge").addEventListener("input", render);
+
+  async function handleRaw(file){
+    showErr("");
+    if(typeof ExcelJS==="undefined"){ showErr("De rekenbibliotheek is niet geladen. Herlaad de pagina en probeer opnieuw."); return; }
+    try{
+      const wb = await readWb(file);
+      state.raw = WL.parseRaw(wb.worksheets[0]);
+      state.rawFileName = file.name;
+      $("rawName").textContent = file.name;
+      $("dropRaw").classList.add("done");
+      let g = guessPeriod(file.name);
+      if(!g && state.raw.info.start){ const st=state.raw.info.start, en=state.raw.info.end, z=n=>String(n).padStart(2,"0");
+        const pl=(state.raw.info.place||"").toLowerCase().replace(/(^|\s)\S/g,x=>x.toUpperCase());
+        g=(pl?pl+" ":"")+z(st.getUTCDate())+"-"+z(st.getUTCMonth()+1)+(en?" tot "+z(en.getUTCDate())+"-"+z(en.getUTCMonth()+1)+"-"+en.getUTCFullYear():""); }
+      if(g && !$("periodName").dataset.touched) $("periodName").value = g;
+      render();
+    }catch(e){
+      state.raw=null; $("out").hidden=true; $("dropRaw").classList.remove("done"); $("rawName").textContent="";
+      showErr("Dit bestand kon niet ingelezen worden: "+(e && e.message ? e.message : e));
+    }
+  }
+  $("periodName").addEventListener("input",()=>{$("periodName").dataset.touched="1";});
+
+  async function handleHist(file){
+    showErr("");
+    try{
+      const wb = await readWb(file);
+      const h = WL.parseHistory(wb);
+      state.hist = h; state.histLabel = file.name;
+      $("histName").textContent = file.name+" – blad ‘"+h.sheet+"’, "+h.count+" namen";
+      $("dropHist").classList.add("done");
+      if($("rememberHist").checked){
+        try{
+          const entries=[...h.map.entries()].map(([k,v])=>[k,{wanneer:v.wanneer instanceof Date?fmtDate(v.wanneer):v.wanneer,behaald:v.behaald instanceof Date?fmtDate(v.behaald):v.behaald,geweest:v.geweest instanceof Date?fmtDate(v.geweest):v.geweest}]);
+          localStorage.setItem(HKEY, JSON.stringify({label:file.name, entries}));
+          $("forgetHist").hidden=false;
+        }catch(e){}
+      }
+      render();
+    }catch(e){ showErr("Het historiekbestand kon niet ingelezen worden: "+(e && e.message ? e.message : e)); }
+  }
+
+  function minAge(){ const v=parseInt($("minAge").value,10); return isNaN(v)?15:v; }
+  function hv(name,key,m){ const h=state.hist?state.hist.map.get(WL.normName(name)):null; let v=h?h[key]:""; if((v==null||v==="")&&key==="geweest"&&m&&m.visits!==undefined) v=m.visits; return v==null?"":(v instanceof Date?fmtDate(v):v); }
+
+  function sheets(){
+    const d=state.raw;
+    const sk=WL.skichefList(d), esf=WL.esfAdults(d,minAge());
+    return [
+      {id:"gekuist", label:"Periode (gekuist)", mk:"green", n:d.total, unit:"deelnemers"},
+      {id:"onthaal", label:"Lijst Onthaal", mk:"blue", n:d.families.filter(f=>!f.staff).length, unit:"gezinnen"+(d.staffCount?" + team":"")},
+      {id:"skichef", label:"Lijst skichef", mk:"red", n:sk.length, unit:d.hasLessons===false?"skiërs (geen lesinfo)":"met skiles", rows:sk},
+      {id:"esf", label:"Lijst ESF ‑ Adultes", mk:"black", n:esf.length, unit:"vanaf "+minAge()+" jaar", rows:esf},
+      {id:"skiset", label:"Skiset", mk:"grey", n:WL.skisetList(d).length, unit:"met materiaal", rows:WL.skisetList(d)},
+      {id:"opm", label:"Opmerkingen gezinnen", mk:"grey", n:d.families.filter(f=>f.remarks.length).length, unit:"met wensen"},
+    ];
+  }
+
+  function render(){
+    if(!state.raw){ $("out").hidden=true; return; }
+    const d=state.raw; $("out").hidden=false;
+    const meta=$("meta"); meta.textContent="";
+    const add=(k,v)=>{ const s=document.createElement("span"); s.append(k+" "); const b=document.createElement("b"); b.textContent=v; s.append(b); meta.append(s); };
+    if(d.info.place) add("Plaats", d.info.place);
+    add("Periode", d.info.periodCode||"–");
+    add("Van", fmtDate(d.info.start)+" tot "+fmtDate(d.info.end));
+    add("Lijst van", fmtDate(d.info.listDate) + (d.info.listBy?" ("+d.info.listBy+")":""));
+    add("Layout", d.layout);
+    add("Historiek", state.hist ? state.hist.count+" namen" : "geen");
+
+    const tabs=$("tabs"); tabs.textContent="";
+    const list=sheets();
+    list.forEach(s=>{
+      const b=document.createElement("button"); b.type="button"; b.className="tab"; b.setAttribute("role","tab");
+      b.setAttribute("aria-selected", String(state.tab===s.id));
+      const mk=document.createElement("span"); mk.className="mk "+s.mk; mk.setAttribute("aria-hidden","true");
+      const t=document.createElement("span");
+      const n=document.createElement("div"); n.className="n"; n.textContent=s.n+" ";
+      const u=document.createElement("span"); u.className="u"; u.textContent=s.unit; n.append(u);
+      const l=document.createElement("div"); l.className="l"; l.textContent=s.label;
+      t.append(n,l); b.append(mk,t);
+      b.addEventListener("click",()=>{state.tab=s.id; render();});
+      tabs.append(b);
+    });
+    renderTable(list.find(s=>s.id===state.tab));
+
+    const w=$("warnList"); w.textContent="";
+    d.warnings.forEach(x=>{ const li=document.createElement("li"); li.textContent=x; w.append(li); });
+    $("warns").hidden = !d.warnings.length;
+  }
+
+  function renderTable(s){
+    const d=state.raw, tbl=$("preview"); tbl.textContent="";
+    const head=(cols)=>{ const tr=document.createElement("tr"); cols.forEach(c=>{const th=document.createElement("th"); th.textContent=c; tr.append(th);}); const th=document.createElement("thead"); th.append(tr); tbl.append(th); };
+    const body=document.createElement("tbody"); tbl.append(body);
+    const row=(vals,cls,flagIdx)=>{ const tr=document.createElement("tr"); if(cls) tr.className=cls; vals.forEach((v,i)=>{const td=document.createElement("td"); td.textContent=v==null?"":(v instanceof Date?fmtDate(v):String(v)); if(i===flagIdx) td.className="flag"; if(cls==="wide"&&i===vals.length-1) td.className="wrap"; tr.append(td);}); body.append(tr); };
+    const base=["Familie","Naam","M/F","Lft","Geb. datum","Maaltijd","Skipas","Lessen","Materiaal","GSM","#geweest","#wanneer"];
+    if(s.id==="gekuist"){
+      head(base);
+      d.families.forEach(f=>f.members.forEach(m=>row([f.nr,m.name,m.sex,m.age,m.birth,m.meal,m.pass,m.lesson,m.material,f.gsm,hv(m.name,"geweest",m),hv(m.name,"wanneer")],"",m.birthdayFlag?4:-1)));
+    } else if(s.id==="onthaal"){
+      head(base);
+      d.families.forEach(f=>{ f.members.forEach(m=>row([f.nr,m.name,m.sex,m.age,m.birth,m.meal,m.pass,m.lesson,m.material,f.gsm,hv(m.name,"geweest",m),hv(m.name,"wanneer")],"",m.birthdayFlag?4:-1)); row(["Aantal "+f.nr,f.members.length],"sub"); });
+      row(["Totaalaantal",d.total],"sub");
+    } else if(s.id==="skichef"){
+      head(["Naam","M/F","Lft","Lessen","#behaald","#geweest","#wanneer","# weken geskied","# opgegeven","samen met","Groep"]);
+      s.rows.forEach(m=>row([m.name,m.sex,m.age,m.lesson,hv(m.name,"behaald"),hv(m.name,"geweest",m),hv(m.name,"wanneer"),"","","",""]));
+    } else if(s.id==="esf"){
+      head(["Nom","Sexe","Âge","Leçons","Classe","#Déjà eu","#Quand"]);
+      s.rows.forEach(m=>row([m.name,m.sex,m.age,m.lesson,m.lesson.endsWith("E")?"Débutant":"",hv(m.name,"geweest",m),hv(m.name,"wanneer")]));
+    } else if(s.id==="skiset"){
+      head(["Group","Nom","Sexe","Age"]);
+      s.rows.forEach(m=>row([m.fam.nr,m.name,m.sex,m.age]));
+    } else {
+      head(["Familie","Hoofdboeker","GSM","E-mail","Opmerking"]);
+      d.families.forEach(f=>{ const notes=f.remarks.slice(); f.members.forEach(m=>{ if(m.note) notes.push(m.name+": "+m.note); }); row([f.nr,f.booker,f.gsm,f.email,notes.join(" / ")],"wide"); });
+    }
+  }
+
+  function outName(){
+    const p=($("periodName").value||"").trim() || state.raw.info.periodCode || "periode";
+    const t=new Date(), z=n=>String(n).padStart(2,"0");
+    return "Werklijst - "+p.replace(/[\\/:*?"<>|]/g,"")+" - versie "+t.getFullYear()+z(t.getMonth()+1)+z(t.getDate())+".xlsx";
+  }
+
+  let dlApi; (async()=>{ try{ if(window.claude && claude.use) dlApi = await claude.use("downloads"); }catch(e){ dlApi=null; } })();
+
+  $("dl").addEventListener("click", async ()=>{
+    if(!state.raw) return;
+    const st=$("status"); st.textContent="Bestand wordt opgemaakt…"; $("dl").disabled=true;
+    try{
+      const { wb } = WL.buildWorkbook(ExcelJS, state.raw, { minAge:minAge(), history:state.hist });
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+      const name = outName();
+      if(dlApi){
+        try{ await dlApi.save({filename:name, data:blob}); st.textContent="Opgeslagen: "+name; }
+        catch(e){ st.textContent = e && e.code==="declined" ? "Downloaden geannuleerd." : "Downloaden lukte niet ("+(e&&e.code||"onbekend")+")."; }
+      } else {
+        const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.append(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+        st.textContent="Klaar: "+name;
+      }
+    }catch(e){ st.textContent="Er ging iets mis bij het opmaken: "+(e&&e.message?e.message:e); }
+    finally{ $("dl").disabled=false; }
+  });
+})();
+</script>
+</body>
+</html>

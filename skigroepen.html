@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Skigroepen – indeling en telling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F5F7F9; --surface:#FFFFFF; --ink:#16212B; --muted:#5A6977; --line:#D8E0E7; --soft:#EDF1F4;
+  --blue:#1E5EAB; --green:#2B8452; --red:#C4362C; --amber:#8A5A00; --amberbg:#FFF6E0; --focus:#1E5EAB; --onblue:#FFFFFF;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0E151C; --surface:#151F29; --ink:#E4EBF1; --muted:#97A6B4; --line:#2A3846; --soft:#1B2733;
+    --blue:#6FA4E8; --green:#5CC28A; --red:#F07A70; --amber:#F2C46B; --amberbg:#2A2312; --focus:#6FA4E8; --onblue:#0E151C;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0E151C; --surface:#151F29; --ink:#E4EBF1; --muted:#97A6B4; --line:#2A3846; --soft:#1B2733;
+  --blue:#6FA4E8; --green:#5CC28A; --red:#F07A70; --amber:#F2C46B; --amberbg:#2A2312; --focus:#6FA4E8; --onblue:#0E151C;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 96px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 64px}
+h1,h2{font-family:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;margin:0;letter-spacing:-.01em}
+h1{font-size:2.2rem;font-weight:700;line-height:1.1}
+h2{font-size:1.3rem;font-weight:600}
+.muted{color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between}
+.settings{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;margin-top:16px}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:.88rem;color:var(--muted)}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.btn{font:inherit;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--blue);background:var(--blue);color:var(--onblue);cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--blue)}
+.btn.small{padding:5px 10px;font-weight:500;font-size:.9rem}
+.btn[disabled]{opacity:.5;cursor:default}
+.filebtn{position:relative;overflow:hidden;display:inline-block}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.filebtn:focus-within{outline:2px solid var(--focus);outline-offset:2px;border-radius:8px}
+section{margin-top:30px}
+
+/* telling: blijft bovenaan staan */
+.tally{position:static;z-index:5;background:var(--bg);padding:12px 0 10px;margin-top:20px;border-bottom:1px solid var(--line)}
+.tally::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.sum{display:flex;flex-wrap:wrap;gap:6px 26px;align-items:baseline}
+.sum .k{font-size:.9rem;color:var(--muted)}
+.sum .v{font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:1.6rem;margin-left:4px}
+.sum button{all:unset;cursor:pointer;border-bottom:1px dashed currentColor}
+.sum button:focus-visible{outline:2px solid var(--focus)}
+.sum .alert .v{color:var(--red)}
+.types{font-size:.9rem;color:var(--muted)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px}
+.card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:9px 11px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:6px;cursor:pointer;min-width:0}
+.card:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.card[aria-pressed="true"]{box-shadow:inset 0 0 0 1px var(--ink);border-color:var(--ink)}
+.card.t-Kinderen{border-left-color:var(--green)}
+.card.t-Jongeren{border-left-color:var(--blue)}
+.card.t-Volwassenen,.card.t-Adulte{border-left-color:var(--ink)}
+.card.t-Extra{border-left-color:var(--muted)}
+.card.over{border-color:var(--red);border-left-color:var(--red)}
+.card .row1{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.card .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .nr{color:var(--muted);font-size:.85rem}
+.card .cnt{font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:1.9rem;line-height:1}
+.card.over .cnt{color:var(--red)}
+.card .meta{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .meta.none{color:var(--red)}
+
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:.93rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 9px;border-bottom:1px solid var(--soft);text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:var(--surface);font-weight:600;border-bottom:1px solid var(--line);z-index:1}
+th button{all:unset;cursor:pointer}
+th button:focus-visible{outline:2px solid var(--focus)}
+td.c,th.c{text-align:center}
+tr.unset td:first-child{box-shadow:inset 3px 0 0 var(--red)}
+td select{padding:4px 6px;max-width:210px}
+td input{padding:4px 6px;width:100%}
+.x{all:unset;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:4px}
+.x:hover{color:var(--red)}
+.x:focus-visible{outline:2px solid var(--focus)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-top:12px}
+.notice{margin-top:14px;padding:10px 14px;border-radius:8px;background:var(--amberbg);font-size:.95rem}
+.notice b{color:var(--amber)}
+.err{margin-top:14px;padding:10px 14px;border-radius:8px;border:1px solid var(--red);color:var(--red)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+details{margin-top:30px}
+details>summary{cursor:pointer;font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:1.3rem;list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸";display:inline-block;width:1.1em;transition:transform .15s}
+details[open]>summary::before{transform:rotate(90deg)}
+.status{color:var(--muted);font-size:.93rem}
+@media (min-width:900px) and (min-height:700px){.tally{position:sticky;top:0}}
+h3.sub{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:1.1rem;margin:26px 0 0}
+.chips{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-wrap:wrap;gap:6px}
+.chips li{display:inline-flex;align-items:center;gap:2px;padding:3px 4px 3px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:.93rem}
+.chips li.used{border-color:var(--blue)}
+.x.del{font-size:1.05rem;padding:4px 10px}
+[hidden]{display:none!important}
+@media (max-width:640px){h1{font-size:1.8rem}.sum .v{font-size:1.3rem}.cards{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <div>
+      <h1>Skigroepen</h1>
+      <p class="muted" style="margin:.4rem 0 0;max-width:64ch">Laad de werklijst (blad ‘Lijst skichef’), vul de monitoren in en deel iedereen in een groep in. De telling bovenaan is altijd bij.</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <span class="btn ghost filebtn">Lijst laden<input type="file" id="file" accept=".xlsx" aria-label="Werklijst of bewaarde groepenlijst laden"></span>
+      <button class="btn ghost" id="pdf" type="button">Totaallijst (PDF)</button>
+      <button class="btn" id="dl" type="button">Groepslijsten downloaden</button>
+    </div>
+  </div>
+  <div class="settings">
+    <label class="f">Titel<input id="sTitle" style="width:9rem"></label>
+    <label class="f">Periode<input id="sPeriod" style="width:9rem" placeholder="bv. Pasen 1"></label>
+    <label class="f">Jaar<input id="sYear" style="width:6rem" inputmode="numeric"></label>
+    <label class="f">Max per groep<input id="sMax" type="number" min="1" max="99" style="width:6rem"></label>
+    <span class="status" id="status" aria-live="polite"></span>
+  </div>
+  <div class="err" id="err" role="alert" hidden></div>
+  <div class="notice" id="notice" hidden></div>
+
+  <div class="tally" id="tally" aria-live="polite">
+    <div class="sum" id="sum"></div>
+    <div class="cards" id="cards"></div>
+  </div>
+
+  <section aria-labelledby="h-ind">
+    <h2 id="h-ind">Indeling</h2>
+    <div class="toolbar">
+      <label class="f">Zoeken<input id="q" type="search" placeholder="Naam" style="width:13rem"></label>
+      <label class="f">Toon<select id="flt"></select></label>
+      <span style="flex:1"></span>
+      <label class="f">Naam toevoegen<input id="aName" placeholder="Achternaam Voornaam" style="width:13rem"></label>
+      <label class="f">Lft<input id="aAge" type="number" min="0" max="99" style="width:4.5rem"></label>
+      <label class="f">Niv<select id="aNiv"><option value="ASL">ASL</option><option value="ASE">ASE</option><option value="">–</option></select></label>
+      <button class="btn small" id="aBtn" type="button">Toevoegen</button>
+    </div>
+    <div class="tablewrap" style="max-height:70vh"><table id="ptable"></table></div>
+  </section>
+
+  <details id="gdet">
+    <summary>Groepen en monitoren</summary>
+    <p class="muted" style="margin:.4rem 0 0">Maak de groepen aan met een naam uit de keuzelijst (onderaan te beheren) en vul per periode de monitoren in. Met ✕ verwijder je een groep: de groepen erna schuiven een nummer op en nemen hun deelnemers mee.</p>
+    <div class="toolbar">
+      <label class="f">Nieuwe groep uit de keuzelijst<select id="gNew"></select></label>
+      <button class="btn small" id="gAdd" type="button">Groep aanmaken</button>
+      <button class="btn small ghost" id="gAll" type="button">Alle namen van de keuzelijst aanmaken</button>
+      <span style="flex:1"></span>
+      <button class="btn small ghost" id="gClear" type="button">Monitoren wissen (nieuwe periode)</button>
+      <button class="btn small ghost" id="reset" type="button">Alle groepen wissen</button>
+    </div>
+    <div class="tablewrap"><table id="gtable"></table></div>
+
+    <h3 class="sub">Keuzelijst groepsnamen</h3>
+    <p class="muted" style="margin:.2rem 0 0">Deze namen verschijnen in de keuzelijst ‘Groep’. Voeg een naam toe als groepen samengaan (bv. ‘Ourson + Flocon’) of verwijder wat niet meer gebruikt wordt. Groepen die een verwijderde naam al hebben, houden die naam.</p>
+    <ul class="chips" id="chips"></ul>
+    <div class="toolbar">
+      <label class="f">Nieuwe groepsnaam<input id="nName" placeholder="bv. Ourson + Flocon" style="width:16rem"></label>
+      <button class="btn small" id="nAdd" type="button">Toevoegen</button>
+      <button class="btn small ghost" id="nReset" type="button">Standaardlijst herstellen</button>
+    </div>
+  </details>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* Skigroepen: kern (browser: window.SG, node: module.exports) */
+(function (root) {
+  "use strict";
+
+  const DEFAULT_GROUPS = [
+    ["Piou-Piou", "Kinderen"], ["Garolou", "Kinderen"], ["Ourson", "Kinderen"], ["Flocon", "Jongeren"],
+    ["1e étoile", "Jongeren"], ["1e étoile", "Jongeren"], ["2e étoile", "Jongeren"], ["2e étoile", "Jongeren"],
+    ["3e étoile", "Jongeren"], ["Bronze", "Jongeren"], ["D'Or", "Jongeren"], ["CC", "Volwassenen"],
+    ["", "Jongeren"], ["", "Volwassenen"], ["", "Extra"], ["", "Extra"],
+    ["", "Adulte"], ["", "Adulte"], ["", "Adulte"], ["", "Adulte"],
+  ];
+  function defaultGroups() {
+    return DEFAULT_GROUPS.map(([name, type], i) => ({ nr: i + 1, name, type, esf: "", intersoc: "", printAge: false }));
+  }
+
+  function plain(v) {
+    if (v === null || v === undefined) return null;
+    if (v instanceof Date) return v;
+    if (typeof v === "object") {
+      if (v.richText) return v.richText.map(t => t.text).join("");
+      if (v.text !== undefined) return plain(v.text);
+      if (v.result !== undefined) return plain(v.result);
+      if (v.error) return null;
+      return null;
+    }
+    if (typeof v === "string") { const s = v.replace(/\u00a0/g, " ").trim(); return s === "" ? null : s; }
+    return v;
+  }
+  const str = v => { v = plain(v); return v === null ? "" : String(v); };
+  const norm = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+  const num = v => { v = plain(v); if (v === null || v === "") return null; const n = Number(v); return isNaN(n) ? null : n; };
+
+  function findHeader(ws, labels, maxRows) {
+    for (let r = 1; r <= Math.min(maxRows || 60, ws.rowCount); r++) {
+      const row = ws.getRow(r), map = {};
+      for (let c = 1; c <= Math.max(ws.columnCount, 12); c++) {
+        const h = norm(str(row.getCell(c).value));
+        if (h) map[h] = map[h] || c;
+      }
+      if (labels.every(l => map[l])) return { row: r, map };
+    }
+    return null;
+  }
+
+  /* Leest een werkboek: eigen export (Alg + Groepen) of een werklijst (Lijst skichef). */
+  function importWorkbook(wb) {
+    const own = wb.getWorksheet("Groepen") && wb.getWorksheet("Alg");
+    if (own) return importOwn(wb);
+    // Kolomkoppen in het Nederlands of Frans herkennen (Naam/Nom, Lft/Âge, Lessen/Leçon de ski ...)
+    const SYN = {
+      name: ["naam", "nom", "name", "nom et prenom"],
+      age: ["lft", "leeftijd", "age", "ouderdom"],
+      sex: ["m/f", "m/v", "sexe", "geslacht"],
+      level: ["lessen", "les", "niv", "niveau", "lecon de ski", "lecon de ski alpin", "lecons", "lecon", "skiles"],
+      achieved: ["#behaald", "behaald"],
+      visits: ["#geweest", "geweest"],
+      group: ["groep", "groupe", "groepnr"],
+    };
+    const scan = (w) => {
+      let best = null;
+      for (let r = 1; r <= Math.min(6, w.rowCount); r++) {
+        const row = w.getRow(r);
+        for (let c = 1; c <= Math.max(w.columnCount, 12); c++) {
+          const h = norm(str(row.getCell(c).value));
+          if (!h) continue;
+          for (const k in SYN) if (SYN[k].includes(h)) {
+            best = best || { cols: {}, row: 0 };
+            if (!best.cols[k]) best.cols[k] = c;
+            best.row = Math.max(best.row, r);
+          }
+        }
+      }
+      return best && best.cols.name && best.cols.age ? best : null;
+    };
+    const sk = wb.worksheets.filter(w => /skichef/i.test(w.name));
+    let ws = sk.find(w => scan(w));
+    if (!ws) {
+      if (sk.length) throw new Error("Het blad ‘" + sk[0].name + "’ is gevonden, maar zonder kolommen voor naam en leeftijd (bv. ‘Naam’/‘Nom’ en ‘Lft’/‘Âge’).");
+      throw new Error("Geen blad ‘Lijst skichef’ gevonden. Laad de werklijst of een eerder bewaarde groepenlijst.");
+    }
+    const h = scan(ws), col = h.cols;
+    const cell = (row, k) => col[k] ? row.getCell(col[k]).value : null;
+    const people = [];
+    for (let r = h.row + 1; r <= ws.rowCount; r++) {
+      const row = ws.getRow(r);
+      const name = str(cell(row, "name"));
+      if (!name) continue;
+      const g = num(cell(row, "group"));
+      people.push({
+        name,
+        sex: str(cell(row, "sex")),
+        age: num(cell(row, "age")),
+        level: str(cell(row, "level")),
+        achieved: str(cell(row, "achieved")),
+        visits: str(cell(row, "visits")),
+        group: g && g > 0 ? g : null,
+      });
+    }
+    return { kind: "werklijst", sheet: ws.name, people };
+  }
+
+  function importOwn(wb) {
+    const gs = wb.getWorksheet("Groepen");
+    const gh = findHeader(gs, ["nr", "groep", "type", "esf monitor"], 10);
+    const groups = [];
+    let meta = {};
+    for (let r = 1; r < gh.row; r++) {
+      const k = norm(str(gs.getRow(r).getCell(1).value)), v = str(gs.getRow(r).getCell(2).value);
+      if (k === "periode") meta.period = v;
+      if (k === "jaar") meta.year = v;
+      if (k === "titel") meta.title = v;
+      if (k === "max per groep") meta.max = num(gs.getRow(r).getCell(2).value);
+    }
+    for (let r = gh.row + 1; r <= gs.rowCount; r++) {
+      const row = gs.getRow(r), nr = num(row.getCell(gh.map["nr"]).value);
+      if (!nr) continue;
+      groups.push({
+        nr, name: str(row.getCell(gh.map["groep"]).value), type: str(row.getCell(gh.map["type"]).value),
+        esf: str(row.getCell(gh.map["esf monitor"]).value),
+        intersoc: gh.map["intersoc monitor"] ? str(row.getCell(gh.map["intersoc monitor"]).value) : "",
+        printAge: gh.map["leeftijd afdrukken"] ? /^(j|ja|y|x|1)/i.test(str(row.getCell(gh.map["leeftijd afdrukken"]).value)) : false,
+      });
+    }
+    const gnCol = gh.map["keuzelijst groepsnamen"];
+    if (gnCol) {
+      meta.groupNames = [];
+      for (let r = gh.row + 1; r <= gs.rowCount; r++) { const v = str(gs.getRow(r).getCell(gnCol).value); if (v) meta.groupNames.push(v); }
+    }
+    const ws = wb.getWorksheet("Alg");
+    const h = findHeader(ws, ["groepnr", "naam"], 80);
+    const m = h.map, people = [];
+    for (let r = h.row + 1; r <= ws.rowCount; r++) {
+      const row = ws.getRow(r), name = str(row.getCell(m["naam"]).value);
+      if (!name) continue;
+      const g = num(row.getCell(m["groepnr"]).value);
+      people.push({
+        name, group: g && g > 0 ? g : null,
+        sex: m["m/f"] ? str(row.getCell(m["m/f"]).value) : "",
+        age: m["lft"] ? num(row.getCell(m["lft"]).value) : null,
+        level: m["niv"] ? str(row.getCell(m["niv"]).value) : "",
+        achieved: m["#behaald"] ? str(row.getCell(m["#behaald"]).value) : "",
+        visits: m["#geweest"] ? str(row.getCell(m["#geweest"]).value) : "",
+      });
+    }
+    return { kind: "eigen", groups, people, meta };
+  }
+
+  /* Nieuwe lijst samenvoegen met bestaande indeling: groepnummers blijven behouden op naam. */
+  function mergePeople(oldPeople, incoming) {
+    const old = new Map(oldPeople.map(p => [norm(p.name), p]));
+    let kept = 0;
+    const out = incoming.map(p => {
+      const o = old.get(norm(p.name));
+      if (o && !p.group && o.group) { kept++; return Object.assign({}, p, { group: o.group, manual: o.manual }); }
+      return Object.assign({}, p);
+    });
+    const names = new Set(out.map(p => norm(p.name)));
+    const gone = oldPeople.filter(p => !names.has(norm(p.name)));
+    return { people: out, kept, gone };
+  }
+
+  function stats(state) {
+    const byGroup = new Map(state.groups.map(g => [g.nr, { group: g, members: [] }]));
+    const unassigned = [], unknown = [];
+    state.people.forEach(p => {
+      if (!p.group) unassigned.push(p);
+      else if (byGroup.has(p.group)) byGroup.get(p.group).members.push(p);
+      else unknown.push(p);
+    });
+    const rows = [...byGroup.values()].map(x => {
+      const ages = x.members.map(p => p.age).filter(a => typeof a === "number");
+      return Object.assign(x, {
+        count: x.members.length,
+        minAge: ages.length ? Math.min(...ages) : null,
+        maxAge: ages.length ? Math.max(...ages) : null,
+        ase: x.members.filter(p => /E$/.test(p.level)).length,
+      });
+    });
+    const assigned = rows.reduce((s, r) => s + r.count, 0);
+    const byType = {};
+    rows.forEach(r => { const t = r.group.type || "—"; byType[t] = (byType[t] || 0) + r.count; });
+    return { rows, unassigned, unknown, assigned, total: state.people.length, byType };
+  }
+
+  const byName = (a, b) => a.name.localeCompare(b.name, "nl", { sensitivity: "base", ignorePunctuation: true });
+
+  /* ---------- export ---------- */
+  function buildWorkbook(ExcelJS, state) {
+    const st = stats(state);
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "Skigroepen";
+    const F = { name: "Arial", size: 10 }, FB = { name: "Arial", size: 10, bold: true };
+    const thin = { style: "thin" };
+    const box = { top: thin, bottom: thin, left: thin, right: thin };
+    const C = { horizontal: "center", vertical: "middle" };
+    const title = [state.title || "Kinderski", state.period, state.year].filter(Boolean).join(" ");
+    const people = state.people.slice().sort(byName);
+    const groupOf = nr => state.groups.find(g => g.nr === nr);
+    const monis = g => [g.esf, g.intersoc].filter(Boolean).join(" / ");
+
+    // ---- Alg: telling + lijst ----
+    {
+      const ws = wb.addWorksheet("Alg", { views: [{ state: "frozen", ySplit: 0 }], pageSetup: { orientation: "portrait", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0 } });
+      ws.getCell("A1").value = "Skigroepen – " + title; ws.getCell("A1").font = { name: "Arial", size: 14, bold: true };
+      const hdr = ["Nr", "Groep", "Type", "ESF monitor", "Intersoc monitor", "Aantal", "Min lft", "Max lft", "ASE"];
+      const top = 3;
+      hdr.forEach((l, i) => { const c = ws.getRow(top).getCell(i + 1); c.value = l; c.font = FB; c.alignment = C; c.border = box; c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE8EEF4" } }; });
+      const G = state.groups.length;
+      const listHead = top + G + 5; // kopregel van de deelnemerslijst
+      const first = listHead + 1, last = listHead + Math.max(people.length, 1);
+      const rngA = `$A$${first}:$A$${last}`, rngD = `$D$${first}:$D$${last}`, rngE = `$E$${first}:$E$${last}`;
+      st.rows.forEach((r, i) => {
+        const row = ws.getRow(top + 1 + i), g = r.group, n = top + 1 + i;
+        const vals = [g.nr, g.name, g.type, g.esf, g.intersoc,
+          { formula: `COUNTIF(${rngA},A${n})`, result: r.count },
+          { formula: `IF(F${n}=0,"",_xlfn.MINIFS(${rngD},${rngA},A${n}))`, result: r.minAge === null ? "" : r.minAge },
+          { formula: `IF(F${n}=0,"",_xlfn.MAXIFS(${rngD},${rngA},A${n}))`, result: r.maxAge === null ? "" : r.maxAge },
+          { formula: `COUNTIFS(${rngA},A${n},${rngE},"*E")`, result: r.ase }];
+        vals.forEach((v, j) => { const c = row.getCell(j + 1); c.value = v === "" ? null : v; c.font = j === 5 ? FB : F; c.border = box; if (j !== 1 && j !== 3 && j !== 4) c.alignment = C; });
+      });
+      const tr = top + G + 1;
+      const t1 = ws.getRow(tr), t2 = ws.getRow(tr + 1), t3 = ws.getRow(tr + 2);
+      t1.getCell(5).value = "Ingedeeld"; t1.getCell(6).value = { formula: `SUM(F${top + 1}:F${top + G})`, result: st.assigned };
+      t2.getCell(5).value = "Niet ingedeeld"; t2.getCell(6).value = { formula: `COUNTA(B${first}:B${last})-COUNT(${rngA})`, result: st.unassigned.length };
+      t3.getCell(5).value = "Totaal"; t3.getCell(6).value = { formula: `COUNTA(B${first}:B${last})`, result: st.total };
+      [t1, t2, t3].forEach(r => { r.getCell(5).font = FB; r.getCell(5).alignment = { horizontal: "right" }; r.getCell(6).font = FB; r.getCell(6).alignment = C; });
+      ["Groepnr", "Naam", "M/F", "Lft", "Niv", "#behaald", "#geweest"].forEach((l, i) => { const c = ws.getRow(listHead).getCell(i + 1); c.value = l; c.font = FB; c.alignment = C; c.border = { bottom: thin }; });
+      people.forEach((p, i) => {
+        const row = ws.getRow(first + i);
+        [p.group || null, p.name, p.sex || null, p.age, p.level || null, p.achieved || null, p.visits === "" ? null : (isNaN(Number(p.visits)) ? p.visits : Number(p.visits))]
+          .forEach((v, j) => { const c = row.getCell(j + 1); c.value = v; c.font = j === 0 ? FB : F; if (j !== 1) c.alignment = C; });
+      });
+      ws.autoFilter = { from: `A${listHead}`, to: `G${last}` };
+      [7, 28, 13, 16, 16, 9, 8, 8, 6].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+      ws.getCell(`A${listHead - 1}`).value = "Pas het groepnummer in kolom A aan: de telling bovenaan rekent mee. Laad dit bestand opnieuw in de app om de groepsbladen te vernieuwen.";
+      ws.getCell(`A${listHead - 1}`).font = { name: "Arial", size: 9, italic: true, color: { argb: "FF666666" } };
+    }
+
+    // ---- Groepen (instellingen) ----
+    {
+      const ws = wb.addWorksheet("Groepen");
+      [["Titel", state.title || "Kinderski"], ["Periode", state.period || ""], ["Jaar", state.year || ""], ["Max per groep", state.max || null]]
+        .forEach(([k, v], i) => { ws.getRow(i + 1).getCell(1).value = k; ws.getRow(i + 1).getCell(1).font = FB; ws.getRow(i + 1).getCell(2).value = v; });
+      const hr = 6;
+      ["Nr", "Groep", "Type", "ESF monitor", "Intersoc monitor", "Leeftijd afdrukken"].forEach((l, i) => { const c = ws.getRow(hr).getCell(i + 1); c.value = l; c.font = FB; c.border = { bottom: thin }; });
+      state.groups.forEach((g, i) => {
+        [g.nr, g.name, g.type, g.esf, g.intersoc, g.printAge ? "j" : "n"].forEach((v, j) => { const c = ws.getRow(hr + 1 + i).getCell(j + 1); c.value = v === "" ? null : v; c.font = F; });
+      });
+      const gn = ws.getRow(hr).getCell(8); gn.value = "Keuzelijst groepsnamen"; gn.font = FB; gn.border = { bottom: thin };
+      (state.groupNames || []).forEach((n, i) => { const c = ws.getRow(hr + 1 + i).getCell(8); c.value = n; c.font = F; });
+      [8, 22, 14, 18, 18, 18, 4, 24].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    }
+
+    const seq = st.rows.filter(r => r.count > 0).sort((x, y) => x.group.nr - y.group.nr);
+    const med = { style: "medium" };
+
+    // ---- groepsbladen per twee (‘1,2’, ‘3,4’ …) om uit te hangen ----
+    {
+      const used = st.rows.filter(r => r.count > 0 || r.group.esf || r.group.name);
+      for (let i = 0; i < used.length; i += 2) {
+        const pair = used.slice(i, i + 2);
+        const ws = wb.addWorksheet(pair.map(r => r.group.nr).join(","), {
+          pageSetup: { orientation: "landscape", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 1, horizontalCentered: true,
+            margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } },
+        });
+        const maxRows = Math.max(20, ...pair.map(r => r.count));
+        pair.forEach((r, k) => {
+          const o = k * 7; // blok A-F en H-M
+          const g = r.group;
+          const cell = (row, col) => ws.getRow(row).getCell(o + col);
+          cell(1, 1).value = g.type || ""; cell(1, 1).font = { name: "Comic Sans MS", size: 18, bold: true };
+          cell(1, 4).value = "Skimoni:"; cell(1, 5).value = g.esf || ""; cell(1, 5).font = FB;
+          cell(2, 5).value = g.intersoc || "";
+          cell(3, 1).value = state.period || ""; cell(3, 1).font = { name: "Comic Sans MS", size: 18 };
+          cell(3, 4).value = "Groep:"; cell(3, 5).value = g.name || ""; cell(3, 5).font = FB;
+          cell(5, 1).value = state.year ? Number(state.year) || state.year : ""; cell(5, 1).font = { name: "Comic Sans MS", size: 14 };
+          cell(5, 4).value = "Groepsnummer:"; cell(5, 5).value = g.nr; cell(5, 5).font = { name: "Arial", size: 14, bold: true };
+          cell(7, 1).value = "Nr"; cell(7, 2).value = "Naam"; if (g.printAge) cell(7, 6).value = "Lft";
+          [1, 2, 3, 4, 5, 6].forEach(c => { cell(7, c).font = FB; cell(7, c).border = { bottom: { style: "medium" } }; });
+          const members = r.members.slice().sort(byName);
+          for (let n = 0; n < maxRows; n++) {
+            cell(8 + n, 1).value = n + 1; cell(8 + n, 1).alignment = C; cell(8 + n, 1).font = F;
+            const p = members[n];
+            if (p) { cell(8 + n, 2).value = p.name; cell(8 + n, 2).font = FB; if (g.printAge) { cell(8 + n, 6).value = p.age; cell(8 + n, 6).alignment = C; } }
+            for (let c = 1; c <= 6; c++) cell(8 + n, c).border = { bottom: { style: "hair" } };
+          }
+          cell(9 + maxRows, 2).value = `Aantal: ${r.count}`; cell(9 + maxRows, 2).font = FB;
+          [5, 14, 6, 13, 16, 6].forEach((w, j) => (ws.getColumn(o + 1 + j).width = w));
+        });
+        ws.getColumn(7).width = 4;
+      }
+    }
+
+    // ---- per skimonitor: eigen groep groot, buurgroepen onderaan ----
+    {
+      const usedNames = new Set();
+      const sheetName = (r) => {
+        let base = ("Moni " + r.group.nr + " " + (r.group.esf || r.group.name || "groep")).replace(/[\\\/?*\[\]:]/g, "").slice(0, 28).trim();
+        let n = base, k = 2; while (usedNames.has(n.toLowerCase())) n = base.slice(0, 26) + " " + k++;
+        usedNames.add(n.toLowerCase()); return n;
+      };
+      // buren: vorige en volgende; groep 1 → 2 en 3; laatste → de twee vorige
+      const neighbours = (i) => {
+        if (seq.length < 2) return [];
+        if (i === 0) return seq.slice(1, 3);
+        if (i === seq.length - 1) return seq.slice(Math.max(0, i - 2), i);
+        return [seq[i - 1], seq[i + 1]];
+      };
+      seq.forEach((r, i) => {
+        const g = r.group;
+        const ws = wb.addWorksheet(sheetName(r), {
+          pageSetup: { orientation: "portrait", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 1, horizontalCentered: true,
+            margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } },
+        });
+        [5, 34, 4, 15, 15, 9].forEach((w, j) => (ws.getColumn(j + 1).width = w));
+        const cell = (row, col) => ws.getRow(row).getCell(col);
+        // grote lijst links
+        const big = Math.max(16, r.count);
+        const members = r.members.slice().sort(byName);
+        for (let n = 0; n < big; n++) {
+          const row = 1 + n;
+          ws.getRow(row).height = 21;
+          const a = cell(row, 1), nm = cell(row, 2);
+          a.value = n + 1; a.font = { name: "Arial", size: 12 }; a.alignment = C;
+          nm.value = members[n] ? members[n].name : null; nm.font = { name: "Arial", size: 12, bold: true }; nm.alignment = { vertical: "middle", indent: 1 };
+          a.border = { top: thin, bottom: thin, left: med, right: thin };
+          nm.border = { top: n === 0 ? med : thin, bottom: n === big - 1 ? med : thin, left: thin, right: med };
+          if (n === 0) a.border.top = med; if (n === big - 1) a.border.bottom = med;
+        }
+        // kader rechts
+        cell(1, 4).value = "Skimoni:";
+        cell(2, 5).value = g.esf || ""; cell(2, 5).font = { name: "Arial", size: 12, bold: true };
+        cell(3, 5).value = g.intersoc || ""; cell(3, 5).font = { name: "Arial", size: 11, bold: true };
+        cell(4, 4).value = "Naam:"; cell(4, 5).value = g.name || ""; cell(4, 5).font = { name: "Arial", size: 12, bold: true };
+        cell(6, 4).value = "Groepsnummer:";
+        ws.mergeCells("F5:F7");
+        cell(5, 6).value = g.nr; cell(5, 6).font = { name: "Times New Roman", size: 22, bold: true }; cell(5, 6).alignment = C;
+        cell(5, 6).border = { top: { style: "double" }, bottom: { style: "double" }, left: { style: "double" }, right: { style: "double" } };
+        cell(8, 4).value = [state.period, state.year].filter(Boolean).join(" "); cell(8, 4).font = { name: "Arial", size: 9, color: { argb: "FF666666" } };
+        for (let row = 1; row <= 8; row++) for (let c = 4; c <= 6; c++) {
+          const x = cell(row, c); if (!(row >= 5 && row <= 7 && c === 6)) {
+            x.border = Object.assign({}, x.border, { top: row === 1 ? thin : undefined, bottom: row === 8 ? thin : undefined, left: c === 4 ? thin : undefined, right: c === 6 ? thin : undefined });
+          }
+          if (!x.font || !x.font.bold) x.font = x.font && x.font.size === 9 ? x.font : { name: "Arial", size: 10 };
+        }
+        // buurgroepen onderaan
+        const nb = neighbours(i);
+        const top = big + 3;
+        const rowsSmall = Math.max(8, ...nb.map(x => x.count), 0);
+        nb.forEach((x, k) => {
+          const c0 = k === 0 ? 1 : 4; // blok A-B of D-F
+          const span = k === 0 ? [1, 2] : [4, 6];
+          const hdr = cell(top, span[0]); hdr.value = "Groep " + x.group.nr + (x.group.name ? "  –  " + x.group.name : ""); hdr.font = { name: "Arial", size: 10, bold: true }; hdr.alignment = C;
+          ws.mergeCells(top, span[0], top, span[1]);
+          const mo = cell(top + 1, span[0]); mo.value = [x.group.esf, x.group.intersoc].filter(Boolean).join(" / ") || null; mo.font = { name: "Arial", size: 10, italic: true }; mo.alignment = C;
+          ws.mergeCells(top + 1, span[0], top + 1, span[1]);
+          for (let c = span[0]; c <= span[1]; c++) {
+            cell(top, c).border = { top: med, bottom: thin, left: c === span[0] ? med : undefined, right: c === span[1] ? med : undefined };
+            cell(top + 1, c).border = { bottom: thin, left: c === span[0] ? med : undefined, right: c === span[1] ? med : undefined };
+          }
+          hdr.border = { top: med, bottom: thin, left: med, right: med };
+          mo.border = { bottom: thin, left: med, right: med };
+          const mem = x.members.slice().sort(byName);
+          for (let n = 0; n < rowsSmall; n++) {
+            const row = top + 3 + n;
+            const a = cell(row, c0); a.value = n + 1; a.font = { name: "Arial", size: 9 }; a.alignment = k === 0 ? C : { horizontal: "right", indent: 1 };
+            const nm = cell(row, c0 + 1); nm.value = mem[n] ? mem[n].name : null; nm.font = { name: "Arial", size: 10 };
+            for (let c = span[0]; c <= span[1]; c++) cell(row, c).border = { left: c === span[0] ? med : undefined, right: c === span[1] ? med : undefined, bottom: n === rowsSmall - 1 ? med : undefined };
+          }
+          for (let c = span[0]; c <= span[1]; c++) cell(top + 2, c).border = { left: c === span[0] ? med : undefined, right: c === span[1] ? med : undefined };
+        });
+      });
+    }
+
+    // ---- Skichef: staand, 6 groepen per blad (2 naast elkaar, 3 onder elkaar) ----
+    {
+      const ws = wb.addWorksheet("Skichef", { pageSetup: { orientation: "portrait", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+        margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } } });
+      [4, 30, 3, 4, 30].forEach((w, j) => (ws.getColumn(j + 1).width = w));
+      let row = 1;
+      for (let b = 0; b < seq.length; b += 2) {
+        const pair = seq.slice(b, b + 2);
+        const h = Math.max(...pair.map(r => r.count));
+        pair.forEach((r, k) => {
+          const c = k === 0 ? 1 : 4;
+          const t = ws.getRow(row).getCell(c + 1);
+          t.value = `Groep ${r.group.nr}${r.group.name ? " – " + r.group.name : ""} (${r.count})`; t.font = FB;
+          const m = ws.getRow(row + 1).getCell(c + 1); m.value = monis(r.group) || "geen monitor"; m.font = { name: "Arial", size: 10, italic: true };
+          ws.getRow(row + 1).getCell(c).border = { bottom: thin }; m.border = { bottom: thin };
+          r.members.slice().sort(byName).forEach((p, n) => {
+            const a = ws.getRow(row + 2 + n).getCell(c); a.value = n + 1; a.font = F; a.alignment = C;
+            const x = ws.getRow(row + 2 + n).getCell(c + 1); x.value = p.name; x.font = F;
+          });
+        });
+        row += h + 4;
+        const band = b / 2 + 1;
+        if (band % 3 === 0 && b + 2 < seq.length) ws.getRow(row - 1).addPageBreak();
+      }
+    }
+
+    // ---- Totaallijst ----
+    {
+      const ws = wb.addWorksheet("Totaallijst", { views: [{ state: "frozen", ySplit: 1 }], pageSetup: { orientation: "portrait", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: "1:1" } });
+      ["Naam", "Groep", "Groepsnaam", "Monitor"].forEach((l, i) => { const c = ws.getRow(1).getCell(i + 1); c.value = l; c.font = FB; c.border = { bottom: thin }; });
+      people.forEach((p, i) => {
+        const g = p.group ? groupOf(p.group) : null;
+        [p.name, p.group || "–", g ? g.name : "", g ? monis(g) : ""].forEach((v, j) => { const c = ws.getRow(2 + i).getCell(j + 1); c.value = v; c.font = j === 1 ? FB : F; if (j === 1) c.alignment = C; });
+      });
+      ws.autoFilter = { from: "A1", to: `D${people.length + 1}` };
+      [28, 8, 16, 26].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+    }
+
+    return wb;
+  }
+
+  /* Totaallijst als platte tekst (voor WhatsApp): alfabetisch, enkel naam en groepsnummer */
+  function totaalText(state) {
+    const people = state.people.slice().sort(byName);
+    const head = ["Totaallijst skigroepen", [state.period, state.year].filter(Boolean).join(" ")].filter(Boolean).join(" – ");
+    const lines = people.map(p => p.name + " – " + (p.group ? "groep " + p.group : "nog niet ingedeeld"));
+    return "*" + head + "*\n\n" + lines.join("\n") + "\n";
+  }
+
+  /* Totaallijst als PDF-tabel (Naam | Groep), in kolommen naast elkaar zodat ook 170 namen op één blad passen */
+  function buildTotaalPdf(jsPDF, state) {
+    const people = state.people.slice().sort(byName);
+    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const W = 210, H = 297, M = 12, gap = 6;
+    const n = people.length;
+    const cols = n <= 45 ? 1 : n <= 100 ? 2 : 3;
+    const titleH = 14, headH = 6.5;
+    const avail = H - 2 * M - titleH - headH;
+    const perCol = Math.ceil(n / cols);
+    let rowH = Math.min(6.5, Math.max(4.2, avail / Math.max(perCol, 1)));
+    const rowsPerCol = Math.max(1, Math.floor(avail / rowH + 1e-6));
+    const perPage = rowsPerCol * cols;
+    const pages = Math.max(1, Math.ceil(n / perPage));
+    const fs = Math.max(7, Math.min(11, rowH * 1.95));
+    const blockW = cols === 1 ? 110 : (W - 2 * M - gap * (cols - 1)) / cols;
+    const grpW = 14, nameW = blockW - grpW;
+    const title = "Totaallijst skigroepen" + ([state.period, state.year].filter(Boolean).length ? " - " + [state.period, state.year].filter(Boolean).join(" ") : "");
+    const fit = (t, w) => {
+      if (doc.getTextWidth(t) <= w) return t;
+      while (t.length > 1 && doc.getTextWidth(t + "…") > w) t = t.slice(0, -1);
+      return t + "…";
+    };
+    for (let pg = 0; pg < pages; pg++) {
+      if (pg) doc.addPage();
+      doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(20);
+      doc.text(title, M, M + 5);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(100);
+      doc.text(n + " deelnemers" + (pages > 1 ? "  -  blad " + (pg + 1) + "/" + pages : ""), W - M, M + 5, { align: "right" });
+      const slice = people.slice(pg * perPage, (pg + 1) * perPage);
+      const colsHere = Math.ceil(slice.length / rowsPerCol) || 1;
+      const rowsHere = Math.ceil(slice.length / cols);
+      for (let c = 0; c < Math.min(cols, colsHere); c++) {
+        const x = M + c * (blockW + gap);
+        let y = M + titleH;
+        const part = slice.slice(c * Math.max(rowsHere, 1), (c + 1) * Math.max(rowsHere, 1));
+        if (!part.length) continue;
+        doc.setFillColor(225, 230, 236); doc.setDrawColor(90); doc.setLineWidth(0.3);
+        doc.rect(x, y, blockW, headH, "FD");
+        doc.setFont("helvetica", "bold"); doc.setFontSize(fs); doc.setTextColor(20);
+        doc.text("Naam", x + 1.5, y + headH / 2, { baseline: "middle" });
+        doc.text("Groep", x + nameW + grpW / 2, y + headH / 2, { baseline: "middle", align: "center" });
+        y += headH;
+        part.forEach((p, i) => {
+          if (i % 2 === 1) { doc.setFillColor(244, 246, 248); doc.rect(x, y, blockW, rowH, "F"); }
+          doc.setDrawColor(170); doc.setLineWidth(0.15);
+          doc.line(x, y + rowH, x + blockW, y + rowH);
+          doc.setFont("helvetica", "normal"); doc.setFontSize(fs); doc.setTextColor(20);
+          doc.text(fit(p.name, nameW - 3), x + 1.5, y + rowH / 2, { baseline: "middle" });
+          doc.setFont("helvetica", "bold");
+          doc.text(p.group ? String(p.group) : "-", x + nameW + grpW / 2, y + rowH / 2, { baseline: "middle", align: "center" });
+          y += rowH;
+        });
+        const top = M + titleH;
+        doc.setDrawColor(90); doc.setLineWidth(0.3);
+        doc.rect(x, top, blockW, y - top);
+        doc.line(x + nameW, top, x + nameW, y);
+      }
+    }
+    return doc;
+  }
+
+  const api = { buildTotaalPdf, totaalText, defaultGroups, importWorkbook, mergePeople, stats, buildWorkbook, norm };
+  if (typeof module !== "undefined" && module.exports) module.exports = api; else root.SG = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function(){
+  "use strict";
+  const $=id=>document.getElementById(id);
+  const KEY="skigroepen-v1";
+  const TYPES=["Kinderen","Jongeren","Volwassenen","Adulte","Extra"];
+  const GROUP_NAMES=["Piou-Piou","Garolou","Ourson","Flocon","1e étoile","2e étoile","3e étoile","Bronze","Argent","D'Or","Chamois","Flèche","CC","Débutant","Adultes","Snowboard"];
+  let state, filter="all", sortKey="name", sortDir=1;
+
+  function fresh(){ return {groupNames:GROUP_NAMES.slice(),title:"Kinderski",period:"",year:String(new Date().getFullYear()),max:12,groups:[],people:[]}; }
+  function load(){ try{ const s=localStorage.getItem(KEY); if(s){ const o=Object.assign(fresh(),JSON.parse(s)); if(!Array.isArray(o.groupNames)) o.groupNames=GROUP_NAMES.slice(); return o; } }catch(e){} return fresh(); }
+  let saveT; function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} },150); }
+  state=load();
+
+  const el=(tag,attrs,...kids)=>{ const e=document.createElement(tag); if(attrs) for(const k in attrs){ if(k==="class") e.className=attrs[k]; else if(k.startsWith("on")) e.addEventListener(k.slice(2),attrs[k]); else if(k==="text") e.textContent=attrs[k]; else e.setAttribute(k,attrs[k]); } kids.flat().forEach(k=>{ if(k!=null) e.append(k); }); return e; };
+  function showErr(m){ $("err").textContent=m||""; $("err").hidden=!m; }
+  function notice(html){ const n=$("notice"); n.textContent=""; if(!html){n.hidden=true;return;} html.forEach(p=>n.append(p)); n.hidden=false; }
+
+  const active=g=>{ return g.name||g.esf||g.intersoc||state.people.some(p=>p.group===g.nr); };
+  const gLabel=g=>g.nr+" – "+(g.name||"(geen naam)")+(g.esf?" ("+g.esf+")":"");
+
+  // ---------- telling ----------
+  function renderTally(){
+    const st=SG.stats(state), max=Number(state.max)||0;
+    const sum=$("sum"); sum.textContent="";
+    const item=(k,v,f,alert)=>{ const s=el("span",{class:alert?"alert":""}); const b=f?el("button",{type:"button",onclick:()=>{filter=f;$("flt").value=f;renderPeople();}}):s; b.append(el("span",{class:"k",text:k}),el("span",{class:"v",text:String(v)})); if(f) s.append(b); sum.append(s); };
+    item("Totaal",st.total,"all");
+    item("Ingedeeld",st.assigned);
+    item("Niet ingedeeld",st.unassigned.length,"none",st.unassigned.length>0);
+    if(st.unknown.length) item("Onbekende groep",st.unknown.length,"unknown",true);
+    const types=Object.entries(st.byType).filter(([,n])=>n>0).map(([t,n])=>t+" "+n).join(", ");
+    if(types) sum.append(el("span",{class:"types",text:types}));
+    const cards=$("cards"); cards.textContent="";
+    st.rows.filter(r=>active(r.group)).forEach(r=>{
+      const g=r.group, over=max&&r.count>max;
+      const pressed=String(filter==="g"+g.nr);
+      const ages=r.count?(r.minAge===r.maxAge?r.minAge+" jaar":r.minAge+"–"+r.maxAge+" jaar"):"leeg";
+      const c=el("button",{type:"button",class:"card t-"+(g.type||"x")+(over?" over":""),"aria-pressed":pressed,title:"Toon groep "+g.nr,
+        onclick:()=>{ filter=(filter==="g"+g.nr)?"all":"g"+g.nr; $("flt").value=filter; renderAll(); }},
+        el("div",{class:"row1"},el("span",{class:"nm",text:g.name||"Groep "+g.nr}),el("span",{class:"nr",text:"#"+g.nr})),
+        el("div",{class:"row1"},el("span",{class:"cnt",text:String(r.count)}),el("span",{class:"nr",text:ages})),
+        el("div",{class:"meta"+(g.esf?"":" none"),text:g.esf?[g.esf,g.intersoc].filter(Boolean).join(" / "):"geen monitor"}));
+      if(over) c.title="Meer dan "+max+" deelnemers";
+      cards.append(c);
+    });
+  }
+
+  // ---------- filter ----------
+  function renderFilter(){
+    const f=$("flt"); const cur=filter; f.textContent="";
+    f.append(el("option",{value:"all",text:"Iedereen"}),el("option",{value:"none",text:"Niet ingedeeld"}),el("option",{value:"unknown",text:"Onbekende groep"}));
+    state.groups.filter(active).forEach(g=>f.append(el("option",{value:"g"+g.nr,text:"Groep "+gLabel(g)})));
+    f.value=[...f.options].some(o=>o.value===cur)?cur:"all"; filter=f.value;
+  }
+  $("flt").addEventListener("change",e=>{filter=e.target.value;renderAll();});
+  $("q").addEventListener("input",renderPeople);
+
+  // ---------- deelnemers ----------
+  function renderPeople(){
+    const t=$("ptable"); t.textContent="";
+    const q=SG.norm($("q").value);
+    const nrs=new Set(state.groups.map(g=>g.nr));
+    let rows=state.people.map((p,i)=>({p,i})).filter(({p})=>{
+      if(q && !SG.norm(p.name).includes(q)) return false;
+      if(filter==="none") return !p.group;
+      if(filter==="unknown") return p.group && !nrs.has(p.group);
+      if(filter.startsWith("g")) return p.group===Number(filter.slice(1));
+      return true;
+    });
+    const key={name:x=>x.p.name,age:x=>x.p.age??-1,level:x=>x.p.level||"",group:x=>x.p.group??999};
+    rows.sort((a,b)=>{ const ka=key[sortKey](a), kb=key[sortKey](b); const r=(typeof ka==="number"&&typeof kb==="number")?ka-kb:String(ka).localeCompare(String(kb),"nl",{sensitivity:"base",ignorePunctuation:true}); return (r||a.p.name.localeCompare(b.p.name,"nl"))*sortDir; });
+    const sh=(k,l,cls)=>el("th",{class:cls||"","aria-sort":sortKey===k?(sortDir>0?"ascending":"descending"):"none"},el("button",{type:"button",onclick:()=>{ if(sortKey===k) sortDir=-sortDir; else {sortKey=k;sortDir=1;} renderPeople(); },text:l+(sortKey===k?(sortDir>0?" ↑":" ↓"):"")}));
+    t.append(el("thead",null,el("tr",null,sh("name","Naam"),sh("age","Lft","c"),sh("level","Niv","c"),el("th",{text:"#behaald"}),el("th",{class:"c",text:"#geweest"}),sh("group","Groep"),el("th",{"aria-label":"Verwijderen"}))));
+    const tb=el("tbody"); t.append(tb);
+    if(!rows.length){ tb.append(el("tr",null,el("td",{colspan:"7",class:"empty",text:state.people.length?"Niemand gevonden voor deze selectie.":"Nog geen deelnemers. Laad de werklijst met ‘Lijst laden’."}))); return; }
+    const opts=state.groups.filter(active);
+    rows.forEach(({p,i})=>{
+      const sel=el("select",{"aria-label":"Groep voor "+p.name,onchange:e=>{ const v=e.target.value; p.group=v?Number(v):null; save(); renderTally(); tr.classList.toggle("unset",!p.group); if(filter!=="all") renderPeople(); }});
+      sel.append(el("option",{value:"",text:"–"}));
+      opts.forEach(g=>sel.append(el("option",{value:String(g.nr),text:gLabel(g)})));
+      if(p.group && !opts.some(g=>g.nr===p.group)) sel.append(el("option",{value:String(p.group),text:p.group+" – (onbekend)"}));
+      sel.value=p.group?String(p.group):"";
+      const tr=el("tr",{class:p.group?"":"unset"},
+        el("td",{text:p.name}), el("td",{class:"c",text:p.age??""}), el("td",{class:"c",text:p.level||""}),
+        el("td",{text:p.achieved||""}), el("td",{class:"c",text:p.visits||""}), el("td",null,sel),
+        el("td",null,el("button",{type:"button",class:"x","aria-label":"Verwijder "+p.name,title:"Verwijderen",text:"✕",onclick:()=>{ if(confirm(p.name+" uit de lijst verwijderen?")){ state.people.splice(i,1); save(); renderAll(); } }})));
+      tb.append(tr);
+    });
+  }
+
+  $("aBtn").addEventListener("click",()=>{
+    const name=$("aName").value.trim(); if(!name){ $("aName").focus(); return; }
+    if(state.people.some(p=>SG.norm(p.name)===SG.norm(name))){ showErr(name+" staat al in de lijst."); return; }
+    showErr("");
+    const age=$("aAge").value===""?null:Number($("aAge").value);
+    state.people.push({name,age,level:$("aNiv").value,sex:"",achieved:"",visits:"",group:filter.startsWith("g")?Number(filter.slice(1)):null,manual:true});
+    $("aName").value=""; $("aAge").value=""; save(); renderAll(); $("aName").focus();
+  });
+
+  // ---------- groepen ----------
+  function renderGroups(){
+    const t=$("gtable"); t.textContent="";
+    t.append(el("thead",null,el("tr",null,...["Nr","Groep","Type","ESF monitor","Intersoc monitor","Aantal","Verwijderen"].map((l,i)=>el("th",{class:i===0||i>=5?"c":"",text:l})))));
+    const tb=el("tbody"); t.append(tb);
+    state.groups.forEach((g,idx)=>{
+      const inp=(k,ph)=>el("input",{value:g[k]||"",placeholder:ph||"","aria-label":k+" groep "+g.nr,oninput:e=>{ g[k]=e.target.value; save(); renderTally(); },onchange:()=>{renderFilter();renderPeople();}});
+      const nameSel=el("select",{"aria-label":"Groep "+g.nr,onchange:e=>{
+        let v=e.target.value;
+        if(v==="__own"){ const own=prompt("Eigen naam voor groep "+g.nr+":",g.name||""); if(own===null){ e.target.value=g.name||""; return; } v=own.trim(); if(v&&!state.groupNames.includes(v)) state.groupNames.push(v); }
+        g.name=v; save(); renderAll(); }});
+      nameSel.append(el("option",{value:"",text:"– kies –"}));
+      const names=(state.groupNames||[]).slice(); if(g.name&&!names.includes(g.name)) names.push(g.name);
+      names.forEach(x=>nameSel.append(el("option",{value:x,text:x})));
+      nameSel.append(el("option",{value:"__own",text:"Eigen naam…"}));
+      nameSel.value=g.name||"";
+      const typ=el("select",{"aria-label":"Type groep "+g.nr,onchange:e=>{g.type=e.target.value;save();renderTally();}}); TYPES.forEach(x=>typ.append(el("option",{value:x,text:x}))); typ.value=TYPES.includes(g.type)?g.type:"Extra";
+      const n=state.people.filter(p=>p.group===g.nr).length;
+      tb.append(el("tr",null,el("td",{class:"c",text:String(g.nr)}),el("td",null,nameSel),el("td",null,typ),el("td",null,inp("esf","monitor")),el("td",null,inp("intersoc","")),el("td",{class:"c",text:String(n)}),
+        el("td",{class:"c"},el("button",{type:"button",class:"x del","aria-label":"Verwijder groep "+g.nr,title:"Groep verwijderen",text:"✕",onclick:()=>deleteGroup(idx)}))));
+    });
+    if(!state.groups.length) tb.append(el("tr",null,el("td",{colspan:"7",class:"empty",text:"Nog geen groepen. Kies hierboven een naam uit de keuzelijst en klik op ‘Groep aanmaken’."})));
+    const sel=$("gNew"), cur=sel.value; sel.textContent="";
+    state.groupNames.forEach(x=>sel.append(el("option",{value:x,text:x})));
+    if(!state.groupNames.length) sel.append(el("option",{value:"",text:"(keuzelijst is leeg)"}));
+    if(state.groupNames.includes(cur)) sel.value=cur;
+  }
+  function guessType(name){
+    const n=SG.norm(name);
+    if(/piou|garolou|ourson/.test(n)) return "Kinderen";
+    if(/^cc$|adult|debutant|volwass/.test(n)) return "Volwassenen";
+    return "Jongeren";
+  }
+  function addGroup(name){
+    const nr=Math.max(0,...state.groups.map(g=>g.nr))+1;
+    state.groups.push({nr,name,type:guessType(name),esf:"",intersoc:"",printAge:false});
+  }
+  function deleteGroup(idx){
+    const g=state.groups[idx];
+    const n=state.people.filter(p=>p.group===g.nr).length;
+    const later=state.groups.slice(idx+1).length;
+    const msg="Groep "+g.nr+(g.name?" ("+g.name+")":"")+" verwijderen?"+(n?"\n"+n+" deelnemers worden ‘niet ingedeeld’.":"")+(later?"\nDe groepen erna schuiven een nummer op en nemen hun deelnemers mee.":"");
+    if(!confirm(msg)) return;
+    state.people.forEach(p=>{ if(p.group===g.nr) p.group=null; });
+    state.groups.splice(idx,1);
+    const map=new Map();
+    state.groups.forEach((x,i)=>{ if(x.nr!==i+1){ map.set(x.nr,i+1); x.nr=i+1; } });
+    state.people.forEach(p=>{ if(p.group&&map.has(p.group)) p.group=map.get(p.group); });
+    filter="all"; save(); renderAll();
+  }
+  $("gAdd").addEventListener("click",()=>{ const v=$("gNew").value; if(!v){ $("status").textContent="Voeg eerst een naam toe aan de keuzelijst."; return; } addGroup(v); save(); renderAll(); });
+  $("gAll").addEventListener("click",()=>{
+    if(!state.groupNames.length) return;
+    if(state.groups.length && !confirm("Voor elke naam van de keuzelijst een groep bijmaken, na de "+state.groups.length+" bestaande groepen?")) return;
+    state.groupNames.forEach(addGroup); save(); renderAll();
+  });
+  $("gClear").addEventListener("click",()=>{ if(!confirm("Alle monitornamen wissen? Groepsnamen en indeling blijven staan.")) return; state.groups.forEach(g=>{g.esf="";g.intersoc="";}); save(); renderAll(); });
+  $("reset").addEventListener("click",()=>{
+    if(!confirm("Alle groepen wissen? De indeling van de deelnemers gaat verloren. De deelnemerslijst en de keuzelijst groepsnamen blijven staan.")) return;
+    state.groups=[]; state.people.forEach(p=>{p.group=null;}); filter="all"; save(); notice(null); renderAll();
+  });
+
+  // ---------- instellingen ----------
+  function bindSetting(id,key){ const i=$(id); i.value=state[key]??""; i.addEventListener("input",()=>{ state[key]=i.value; save(); if(key==="max") renderTally(); }); }
+  function renderSettings(){ $("sTitle").value=state.title||""; $("sPeriod").value=state.period||""; $("sYear").value=state.year||""; $("sMax").value=state.max??""; }
+  bindSetting("sTitle","title"); bindSetting("sPeriod","period"); bindSetting("sYear","year"); bindSetting("sMax","max");
+
+  // ---------- laden ----------
+  $("file").addEventListener("change",async e=>{
+    const f=e.target.files[0]; e.target.value=""; if(!f) return;
+    showErr(""); notice(null);
+    if(typeof ExcelJS==="undefined"){ showErr("De rekenbibliotheek is niet geladen. Herlaad de pagina."); return; }
+    try{
+      const wb=new ExcelJS.Workbook(); await wb.xlsx.load(await f.arrayBuffer());
+      const r=SG.importWorkbook(wb);
+      if(r.kind==="eigen"){
+        if(state.people.length && !confirm("Dit is een bewaarde groepenlijst. De huidige indeling en monitoren vervangen?")) return;
+        state.groups=r.groups.length?r.groups:SG.defaultGroups(); state.people=r.people;
+        if(r.meta.groupNames&&r.meta.groupNames.length) state.groupNames=r.meta.groupNames;
+        Object.assign(state,{title:r.meta.title||state.title,period:r.meta.period||state.period,year:r.meta.year||state.year,max:r.meta.max||state.max});
+        notice([el("b",{text:"Bewaarde lijst geladen. "}),r.people.length+" deelnemers en "+r.groups.length+" groepen uit "+f.name+"."]);
+      } else {
+        const had=state.people.length;
+        const m=SG.mergePeople(state.people,r.people);
+        state.people=m.people;
+        if(!state.period){ const g=f.name.match(/(Krokus|Pasen|Kerst|Herfst|Carnaval|Paas)[\s_-]*(\d+)?/i); if(g) state.period=g[1].charAt(0).toUpperCase()+g[1].slice(1).toLowerCase()+(g[2]?" "+g[2]:""); }
+        const parts=[el("b",{text:"Werklijst geladen. "}),r.people.length+" deelnemers uit ‘"+r.sheet+"’."];
+        if(had){ parts.push(" "+m.kept+" behielden hun groep."); if(m.gone.length) parts.push(" Niet meer in de lijst en verwijderd: "+m.gone.map(p=>p.name).join(", ")+"."); }
+        notice(parts);
+      }
+      save(); renderAll();
+    }catch(err){ showErr("Dit bestand kon niet geladen worden: "+(err&&err.message?err.message:err)); }
+  });
+
+  // ---------- downloaden ----------
+  let dlApi=null; (async()=>{ try{ if(window.claude&&claude.use) dlApi=await claude.use("downloads"); }catch(e){} })();
+  $("dl").addEventListener("click",async()=>{
+    const st=$("status");
+    if(!state.people.length){ st.textContent="Laad eerst een lijst."; return; }
+    const s=SG.stats(state);
+    const noMoni=s.rows.filter(r=>r.count>0&&!r.group.esf).map(r=>r.group.nr);
+    if((s.unassigned.length||noMoni.length) && !confirm([s.unassigned.length?s.unassigned.length+" deelnemers zijn nog niet ingedeeld.":"",noMoni.length?"Groep "+noMoni.join(", ")+" heeft nog geen monitor.":"","Toch downloaden?"].filter(Boolean).join("\n"))) return;
+    $("dl").disabled=true; st.textContent="Bestand wordt opgemaakt…";
+    try{
+      const wb=SG.buildWorkbook(ExcelJS,state);
+      const blob=new Blob([await wb.xlsx.writeBuffer()],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+      const name=("Skigroepen - "+[state.period,state.year].filter(Boolean).join(" ")).replace(/[\\/:*?"<>|]/g,"").trim()+".xlsx";
+      if(dlApi){ try{ await dlApi.save({filename:name,data:blob}); st.textContent="Opgeslagen: "+name; }catch(e){ st.textContent=e&&e.code==="declined"?"Downloaden geannuleerd.":"Downloaden lukte niet ("+(e&&e.code||"onbekend")+")."; } }
+      else { const a=el("a",{href:URL.createObjectURL(blob),download:name}); document.body.append(a); a.click(); a.remove(); st.textContent="Klaar: "+name; }
+    }catch(e){ st.textContent="Er ging iets mis: "+(e&&e.message?e.message:e); }
+    finally{ $("dl").disabled=false; }
+  });
+
+  $("pdf").addEventListener("click",async()=>{
+    const st=$("status");
+    if(!state.people.length){ st.textContent="Laad eerst een lijst."; return; }
+    if(!window.jspdf){ st.textContent="De PDF-bibliotheek is niet geladen. Herlaad de pagina."; return; }
+    try{
+      const doc=SG.buildTotaalPdf(window.jspdf.jsPDF,state);
+      const blob=doc.output("blob");
+      const name=("Totaallijst - "+[state.period,state.year].filter(Boolean).join(" ")).replace(/[\\/:*?"<>|]/g,"").trim()+".pdf";
+      if(dlApi){ try{ await dlApi.save({filename:name,data:blob}); st.textContent="Opgeslagen: "+name; }catch(e){ st.textContent=e&&e.code==="declined"?"Downloaden geannuleerd.":"Downloaden lukte niet ("+(e&&e.code||"onbekend")+")."; } }
+      else { const a=el("a",{href:URL.createObjectURL(blob),download:name}); document.body.append(a); a.click(); a.remove(); st.textContent="Klaar: "+name; }
+    }catch(e){ st.textContent="Er ging iets mis: "+(e&&e.message?e.message:e); }
+  });
+
+  function renderChips(){
+    const ul=$("chips"); ul.textContent="";
+    state.groupNames.forEach((n,i)=>{
+      const used=state.groups.some(g=>g.name===n);
+      ul.append(el("li",{class:used?"used":"",title:used?"In gebruik":""},el("span",{text:n}),
+        el("button",{type:"button",class:"x","aria-label":"Verwijder "+n+" uit de keuzelijst",text:"✕",onclick:()=>{ state.groupNames.splice(i,1); save(); renderGroups(); renderChips(); }})));
+    });
+    if(!state.groupNames.length) ul.append(el("li",{text:"De keuzelijst is leeg."}));
+  }
+  function addName(){
+    const v=$("nName").value.trim(); if(!v){ $("nName").focus(); return; }
+    if(state.groupNames.some(n=>n.toLowerCase()===v.toLowerCase())){ $("status").textContent="‘"+v+"’ staat al in de keuzelijst."; return; }
+    state.groupNames.push(v); $("nName").value=""; save(); renderGroups(); renderChips(); $("nName").focus();
+  }
+  $("nAdd").addEventListener("click",addName);
+  $("nName").addEventListener("keydown",e=>{ if(e.key==="Enter") addName(); });
+  $("nReset").addEventListener("click",()=>{ if(!confirm("De keuzelijst terugzetten naar de standaardnamen?")) return; state.groupNames=GROUP_NAMES.slice(); save(); renderGroups(); renderChips(); });
+
+  function renderAll(){ renderChips(); renderSettings(); renderFilter(); renderTally(); renderPeople(); renderGroups(); }
+  renderAll();
+  if(!state.people.length) $("gdet").open=false;
+})();
+</script>
+</body>
+</html>
